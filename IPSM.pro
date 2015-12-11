@@ -13,8 +13,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    TensorField.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    TensorField.h
 
 FORMS    += mainwindow.ui
