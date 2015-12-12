@@ -96,13 +96,10 @@ QPixmap TensorField::exportTensorVectorsImage(bool drawVector1, bool drawVector2
             {
                 painter.setPen(pen1);
                 QVector2D base = origin + QVector2D(i*dv, j*du);
-                QVector4D tensor = mData[i][j].normalized();
-                // TODO : Don't use the 2 columns of the tensor,
-                // but the 2 eigenvectors of the tensor instead.
-                QVector2D scaledVector(tensor.x(),tensor.y());
-                scaledVector.setX(scaledVector.x()*du/2.0f);
-                scaledVector.setY(scaledVector.y()*dv/2.0f);
-                QVector2D tip = base + scaledVector;
+                QVector2D eigenVector = getMajorEigenVector(mData[i][j]);
+                eigenVector.setX(eigenVector.x()*du/2.0f);
+                eigenVector.setY(eigenVector.y()*dv/2.0f);
+                QVector2D tip = base + eigenVector;
                 roundVector2D(base);
                 roundVector2D(tip);
                 painter.drawLine(base.x(),base.y(),tip.x(),tip.y());
@@ -111,11 +108,10 @@ QPixmap TensorField::exportTensorVectorsImage(bool drawVector1, bool drawVector2
             {
                 painter.setPen(pen2);
                 QVector2D base = origin + QVector2D(i*dv, j*du);
-                QVector4D tensor = mData[i][j].normalized();
-                QVector2D scaledVector(tensor.z(),tensor.w());
-                scaledVector.setX(scaledVector.x()*du/2.0f);
-                scaledVector.setY(scaledVector.y()*dv/2.0f);
-                QVector2D tip = base + scaledVector;
+                QVector2D eigenVector = getMinorEigenVector(mData[i][j]);
+                eigenVector.setX(eigenVector.x()*du/2.0f);
+                eigenVector.setY(eigenVector.y()*dv/2.0f);
+                QVector2D tip = base + eigenVector;
                 roundVector2D(base);
                 roundVector2D(tip);
                 painter.drawLine(base.x(),base.y(),tip.x(),tip.y());
