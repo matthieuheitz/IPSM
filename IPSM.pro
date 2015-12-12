@@ -14,9 +14,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    TensorField.cpp
+    TensorField.cpp \
+    StreetGraph.cpp
 
 HEADERS  += mainwindow.h \
-    TensorField.h
+    TensorField.h \
+    StreetGraph.h
 
 FORMS    += mainwindow.ui
