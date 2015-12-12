@@ -1,5 +1,6 @@
 #include "TensorField.h"
 #include "math.h"
+#include "iostream"
 
 #include <QPainter>
 #include <QPen>
@@ -13,6 +14,7 @@ TensorField::TensorField(QSize fieldSize, QObject *parent) :
     {
         mData[i].resize(fieldSize.width());
     }
+    mFieldIsFilled = false;
 }
 
 QVector4D TensorField::getTensor(int i, int j)
@@ -41,6 +43,7 @@ void TensorField::fillGridBasisField(float theta, float l)
             mData[i][j] = tensor;
         }
     }
+    mFieldIsFilled = true;
 }
 
 void TensorField::fillGridBasisField(QVector2D direction)
@@ -138,4 +141,70 @@ void roundVector2D(QVector2D vec)
 {
     vec.setX(round(vec.x()));
     vec.setY(round(vec.y()));
+}
+
+QVector2D getFirstVector(QVector4D matrix)
+{
+    return QVector2D(matrix.x(),matrix.y());
+}
+
+QVector2D getSecondVector(QVector4D matrix)
+{
+    return QVector2D(matrix.z(),matrix.w());
+}
+
+QVector4D getTensorEigenVectors(QVector4D tensor)
+{
+    if(!isSymetricalAndTraceless(tensor))
+    {
+        std::cerr<<"The tensor must be traceless and symmetrical"<<std::endl;
+        return QVector4D();
+    }
+    QVector2D lambdas = getTensorEigenValues(tensor);
+    if(abs(tensor.y()) > FLOAT_COMPARISON_EPSILON) // if b == 0
+    {
+        if(abs(tensor.x()) > FLOAT_COMPARISON_EPSILON) // if a == 0
+        {
+            std::cout<<"WARNING - Null tensor: the point is degenerate"<<std::endl;
+            return QVector4D(0.0f,0.0f,0.0f,0.0f);
+        }
+        return QVector4D(1.0f,0.0f,0.0f,1.0f);
+    }
+    // Vi = (Li + a, b)
+    QVector2D vec1(lambdas[0]+tensor.x(),tensor.y());
+    QVector2D vec2(lambdas[1]+tensor.x(),tensor.y());
+    vec1.normalize();
+    vec2.normalize();
+    return QVector4D(vec1.x(), vec1.y(),vec2.x(), vec2.y());
+}
+
+QVector2D getTensorEigenValues(QVector4D tensor)
+{
+    // lambda = +/- sqrt(a^2 +b^2)
+    float lambda1 = sqrt(tensor.x()*tensor.x() + tensor.y()*tensor.y());
+    return QVector2D(lambda1,-lambda1);
+}
+
+QVector2D getMajorEigenVector(QVector4D tensor)
+{
+    return getFirstVector(getTensorEigenVectors(tensor));
+}
+
+QVector2D getMinorEigenVector(QVector4D tensor)
+{
+    return getSecondVector(getTensorEigenVectors(tensor));
+}
+
+bool isSymetricalAndTraceless(QVector4D tensor)
+{
+    return tensor.y() == tensor.z()
+            && (tensor.x() + tensor.w() > FLOAT_COMPARISON_EPSILON );
+}
+
+bool isDegenerate(QVector4D tensor)
+{
+    return tensor.x() < FLOAT_COMPARISON_EPSILON
+            && tensor.y() < FLOAT_COMPARISON_EPSILON
+            && tensor.z() < FLOAT_COMPARISON_EPSILON
+            && tensor.w() < FLOAT_COMPARISON_EPSILON;
 }

@@ -12,6 +12,9 @@
 #include <QPixmap>
 #include <QSize>
 
+// Epsilon for float comparison
+#define FLOAT_COMPARISON_EPSILON 1e-5
+
 class TensorField : public QObject
 {
     Q_OBJECT
@@ -29,6 +32,9 @@ public:
     QSize getFieldSize() {return this->mFieldSize;}
     // Set the tensor field size
     void setFieldSize(QSize fieldSize) {this->mFieldSize = fieldSize;}
+
+    // Returns whether the field has been filled with non-zero values
+    bool isFieldFilled();
 
     /** General Use Functions */
 
@@ -72,6 +78,8 @@ private:
     QVector<QVector<QVector4D> > mData;
     // Field size
     QSize mFieldSize;
+    // Holds wether the field has been initialized with non-zero values
+    bool mFieldIsFilled;
 };
 
 
@@ -80,4 +88,30 @@ private:
 
 // Round a 2D vector
 void roundVector2D(QVector2D vec);
+
+// Get the first vector of the 2x2 matrix
+QVector2D getFirstVector(QVector4D matrix);
+// Get the second vector of the 2x2 matrix
+QVector2D getSecondVector(QVector4D matrix);
+
+// Returns the normalized major and minor eigenvectors of the passed tensor
+// Warning : This only works if the tensor is traceless, real and symmetrical
+QVector4D getTensorEigenVectors(QVector4D tensor);
+// Returns the major and minor eigenvalues of the passed tensor.
+// Warning : This only works if the tensor is traceless, real and symmetrical
+QVector2D getTensorEigenValues(QVector4D tensor);
+// Returns the normalized major eigenvector of the passed tensor.
+// Warning : This only works if the tensor is traceless, real and symmetrical
+QVector2D getMajorEigenVector(QVector4D tensor);
+// Returns the normalized minor eigenvector of the passed tensor.
+// Warning : This only works if the tensor is traceless, real and symmetrical
+QVector2D getMinorEigenVector(QVector4D tensor);
+
+// Returns whether the tensor is real, symmetrical and traceless, or not.
+bool isSymetricalAndTraceless(QVector4D tensor);
+// Returns whether the tensor is degenerate or not
+bool isDegenerate(QVector4D tensor);
+
+
+
 #endif // TENSORFIELD_H
