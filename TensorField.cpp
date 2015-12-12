@@ -8,40 +8,29 @@
 TensorField::TensorField(QSize fieldSize, QObject *parent) :
     QObject(parent), mFieldSize(fieldSize)
 {
-    this->mData.resize(fieldSize.height());
+    mData.resize(fieldSize.height());
     for(int i=0 ; i < fieldSize.height() ; i++)
     {
         mData[i].resize(fieldSize.width());
     }
 }
 
-
-void roundVector2D(QVector2D vec)
-{
-    vec.setX(round(vec.x()));
-    vec.setY(round(vec.y()));
-}
-
-// Get the tensor at index (i,j)
 QVector4D TensorField::getTensor(int i, int j)
 {
     return mData[i][j];
 }
 
-// Set the tensor at index (i,j)
 void TensorField::setTensor(int i, int j, QVector4D tensor)
 {
-    this->mData[i][j] = tensor;
+    mData[i][j] = tensor;
 }
 
-// Generate a grid basis function from an angle and
-// a vector's length (norm)
 void TensorField::fillGridBasisField(float theta, float l)
 {
     float k = 2.0;
-    for(int i=0; i<this->mFieldSize.height() ; i++)
+    for(int i=0; i<mFieldSize.height() ; i++)
     {
-        for(int j=0; j<this->mFieldSize.width() ; j++)
+        for(int j=0; j<mFieldSize.width() ; j++)
         {
             QVector4D tensor;
             tensor.setX(cos(k*theta));
@@ -54,9 +43,6 @@ void TensorField::fillGridBasisField(float theta, float l)
     }
 }
 
-// Generate a grid basis field from a 2D vector
-// Don't normalize the vector as this function
-// integrates the vector's norm in the tensor
 void TensorField::fillGridBasisField(QVector2D direction)
 {
     float theta = atan(direction.y()/direction.x());
@@ -74,9 +60,9 @@ void TensorField::generateTensorField()
 
 void TensorField::outputTensorField()
 {
-    for(int i=0; i<this->mFieldSize.height() ; i++)
+    for(int i=0; i<mFieldSize.height() ; i++)
     {
-        for(int j=0; j<this->mFieldSize.width() ; j++)
+        for(int j=0; j<mFieldSize.width() ; j++)
         {
             qDebug()<<mData[i][j];
         }
@@ -95,13 +81,13 @@ QPixmap TensorField::exportTensorVectorsImage(bool drawVector1, bool drawVector2
     QPen pen1(color1);
     QPen pen2(color2);
 
-    float dv = imageSize/(float)this->mFieldSize.height();
-    float du = imageSize/(float)this->mFieldSize.width();
+    float dv = imageSize/(float)mFieldSize.height();
+    float du = imageSize/(float)mFieldSize.width();
     QVector2D origin(du/2.0f, dv/2.0f);
 
-    for(int i=0; i<this->mFieldSize.height() ; i++)
+    for(int i=0; i<mFieldSize.height() ; i++)
     {
-        for(int j=0; j<this->mFieldSize.width() ; j++)
+        for(int j=0; j<mFieldSize.width() ; j++)
         {
             if(drawVector1)
             {
@@ -139,4 +125,17 @@ QPixmap TensorField::exportTensorVectorsImage(bool drawVector1, bool drawVector2
 //    l.show();
     emit newTensorFieldImage(pixmap);
     return pixmap;
+}
+
+
+/** ******************** */
+/** Non-member Functions */
+/** ******************** */
+
+
+
+void roundVector2D(QVector2D vec)
+{
+    vec.setX(round(vec.x()));
+    vec.setY(round(vec.y()));
 }

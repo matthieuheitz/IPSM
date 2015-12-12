@@ -32,8 +32,12 @@ public:
 
     /** General Use Functions */
 
-    // Creates a grid tensor field
+    // Generate a grid basis field from a 2D vector
+    // Don't normalize the vector as this function
+    // integrates the vector's norm in the tensor
     void fillGridBasisField(QVector2D direction);
+    // Generate a grid basis function from an angle and
+    // a vector's length (norm)
     void fillGridBasisField(float theta, float l);
 
     // Output the tensor field to QDebug
@@ -47,17 +51,33 @@ public:
 
 signals:
 
+    // Fired when a new tensor field image is created
     void newTensorFieldImage(QPixmap);
 
 public slots:
 
+    // Generates a tensor field with default parameters
     void generateTensorField();
 
 private:
 
-    QSize mFieldSize;
+    // Tensor field
+    // A tensor is stored with a QVector4D.
+    // The coordinates are as follows:
+    // | x  w |
+    // | y  z |
+    // A traceless, real, symmetrical tensor is of the form:
+    // | a  b |
+    // | b -a |
     QVector<QVector<QVector4D> > mData;
-
+    // Field size
+    QSize mFieldSize;
 };
 
+
+/** Non-member Functions */
+
+
+// Round a 2D vector
+void roundVector2D(QVector2D vec);
 #endif // TENSORFIELD_H
