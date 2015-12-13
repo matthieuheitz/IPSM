@@ -45,6 +45,24 @@ void TensorField::fillGridBasisField(float theta, float l)
     mFieldIsFilled = true;
 }
 
+void TensorField::fillRotatingField()
+{
+    for(int i=0; i<mFieldSize.height() ; i++)
+    {
+        for(int j=0; j<mFieldSize.width() ; j++)
+        {
+            float theta = M_PI*j/(mFieldSize.width()-1);
+            QVector4D tensor;
+            tensor.setX(cos(2.0*theta));
+            tensor.setY(sin(2.0*theta));
+            tensor.setZ(sin(2.0*theta));
+            tensor.setW(-cos(2.0*theta));
+            mData[i][j] = tensor;
+        }
+    }
+    mFieldIsFilled = true;
+}
+
 void TensorField::fillGridBasisField(QVector2D direction)
 {
     float theta = atan2(direction.y(),direction.x());

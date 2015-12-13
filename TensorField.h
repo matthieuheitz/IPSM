@@ -45,6 +45,8 @@ public:
     // Generate a grid basis function from an angle and an amplitude.
     // There is no direction, so theta and theta + pi give the same result
     void fillGridBasisField(float theta, float l);
+    // Test function to check the different angles
+    void fillRotatingField();
 
     // Output the tensor field to QDebug
     void outputTensorField();
