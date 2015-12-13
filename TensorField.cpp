@@ -114,11 +114,14 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
             if(drawVector1)
             {
                 painter.setPen(pen1);
-                QVector2D base = origin + QVector2D(i*dv, j*du);
+                QVector2D base = origin + QVector2D(j*dv, i*du);
                 QVector2D eigenVector = getTensorMajorEigenVector(mData[i][j]);
                 eigenVector.setX(eigenVector.x()*du/2.0f);
-                eigenVector.setY(eigenVector.y()*dv/2.0f);
+                // Flip the y axis because the painter system has its origin
+                // on the top left corner and the y axis points down
+                eigenVector.setY(-eigenVector.y()*dv/2.0f);
                 QVector2D tip = base + eigenVector;
+                base -= eigenVector;
                 roundVector2D(base);
                 roundVector2D(tip);
                 painter.drawLine(base.x(),base.y(),tip.x(),tip.y());
@@ -126,11 +129,14 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
             if(drawVector2)
             {
                 painter.setPen(pen2);
-                QVector2D base = origin + QVector2D(i*dv, j*du);
+                QVector2D base = origin + QVector2D(j*dv, i*du);
                 QVector2D eigenVector = getTensorMinorEigenVector(mData[i][j]);
                 eigenVector.setX(eigenVector.x()*du/2.0f);
-                eigenVector.setY(eigenVector.y()*dv/2.0f);
+                // Flip the y axis because the painter system has its origin
+                // on the top left corner and the y axis points down
+                eigenVector.setY(-eigenVector.y()*dv/2.0f);
                 QVector2D tip = base + eigenVector;
+                base -= eigenVector;
                 roundVector2D(base);
                 roundVector2D(tip);
                 painter.drawLine(base.x(),base.y(),tip.x(),tip.y());
@@ -138,9 +144,6 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
         }
     }
 
-//    QLabel l;
-//    l.setPixmap(pixmap);
-//    l.show();
     emit newTensorFieldImage(pixmap);
     return pixmap;
 }
