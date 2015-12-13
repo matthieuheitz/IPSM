@@ -81,6 +81,10 @@ public slots:
 
     // Generates a tensor field with default parameters
     void generateTensorField();
+    // Compute the eigen vectors and values of each tensor in the field,
+    // and store them internally.
+    // Return the number of degenerate points (null eigenvectors)
+    int computeTensorsEigenDecomposition();
 
 private:
 

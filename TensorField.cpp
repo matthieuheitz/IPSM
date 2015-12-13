@@ -1,6 +1,7 @@
 #include "TensorField.h"
 #include "math.h"
 #include "iostream"
+#include "eigen3/Eigen/Dense"
 
 #include <QPainter>
 #include <QPen>
@@ -75,6 +76,7 @@ void TensorField::generateTensorField()
     QVector2D vec(sqrt(3)/2.0f,1.0f/2.0f);
 //    QVector2D vec(1,0);
     this->fillGridBasisField(vec);
+    this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
 }
 
@@ -141,6 +143,42 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
 //    l.show();
     emit newTensorFieldImage(pixmap);
     return pixmap;
+}
+
+int TensorField::computeTensorsEigenDecomposition()
+{
+    if(!mFieldIsFilled)
+    {
+        qCritical()<<"Fill the tensor field before computing the eigen vectors";
+        return -1;
+    }
+    // Initialize the vectors and values internal containers if they aren't already
+    if(mEigenVectors.size() ==0 || mEigenValues.size() == 0)
+    {
+        mEigenVectors.resize(mFieldSize.height());
+        mEigenValues.resize(mFieldSize.height());
+        for(int i=0 ; i < mFieldSize.height() ; i++)
+        {
+            mEigenVectors[i].resize(mFieldSize.width());
+            mEigenValues[i].resize(mFieldSize.width());
+        }
+    }
+    // Fill the internal containers
+    int numberOfDegeneratePoints = 0;
+    for(int i=0; i<mFieldSize.height() ; i++)
+    {
+        for(int j=0; j<mFieldSize.width() ; j++)
+        {
+            mEigenVectors[i][j] = getTensorEigenVectors(mData[i][j]);
+            mEigenValues[i][j] = getTensorEigenValues(mData[i][j]);
+            if(isDegenerate(mEigenVectors[i][j]))
+            {
+                numberOfDegeneratePoints++;
+            }
+        }
+    }
+    mEigenIsComputed = true;
+    return numberOfDegeneratePoints;
 }
 
 QVector4D TensorField::getEigenVectors(int i, int j)
@@ -210,32 +248,38 @@ QVector4D getTensorEigenVectors(QVector4D tensor)
 {
     if(!isSymetricalAndTraceless(tensor))
     {
-        std::cerr<<"The tensor must be traceless and symmetrical"<<std::endl;
+        qCritical()<<"The tensor must be traceless and symetrical";
         return QVector4D();
     }
-    QVector2D lambdas = getTensorEigenValues(tensor);
-    if(abs(tensor.y()) > FLOAT_COMPARISON_EPSILON) // if b == 0
+    Eigen::Matrix2f m(2,2);
+    m(0,0) = tensor.x();
+    m(1,0) = tensor.y();
+    m(0,1) = tensor.z();
+    m(1,1) = tensor.w();
+
+    Eigen::EigenSolver<Eigen::Matrix2f> es(m);
+    QVector2D vec1(es.eigenvectors().col(0).real()[0],es.eigenvectors().col(0).real()[1]);
+    QVector2D vec2(es.eigenvectors().col(1).real()[0],es.eigenvectors().col(1).real()[1]);
+    QVector2D val = getTensorEigenValues(tensor);
+    if(isFuzzyEqual(val.x(), fmax(val.x(),val.y())))
     {
-        if(abs(tensor.x()) > FLOAT_COMPARISON_EPSILON) // if a == 0
-        {
-            std::cout<<"WARNING - Null tensor: the point is degenerate"<<std::endl;
-            return QVector4D(0.0f,0.0f,0.0f,0.0f);
-        }
-        return QVector4D(1.0f,0.0f,0.0f,1.0f);
+        return QVector4D(vec1.x(), vec1.y(),vec2.x(), vec2.y());
     }
-    // Vi = (Li + a, b)
-    QVector2D vec1(lambdas[0]+tensor.x(),tensor.y());
-    QVector2D vec2(lambdas[1]+tensor.x(),tensor.y());
-    vec1.normalize();
-    vec2.normalize();
-    return QVector4D(vec1.x(), vec1.y(),vec2.x(), vec2.y());
+    else
+    {
+        return QVector4D(vec2.x(), vec2.y(),vec1.x(), vec1.y());
+    }
 }
 
 QVector2D getTensorEigenValues(QVector4D tensor)
 {
-    // lambda = +/- sqrt(a^2 +b^2)
-    float lambda1 = sqrt(tensor.x()*tensor.x() + tensor.y()*tensor.y());
-    return QVector2D(lambda1,-lambda1);
+    Eigen::Matrix2f m(2,2);
+    m(0,0) = tensor.x();
+    m(1,0) = tensor.y();
+    m(0,1) = tensor.z();
+    m(1,1) = tensor.w();
+    Eigen::EigenSolver<Eigen::Matrix2f> es(m);
+    return QVector2D(es.eigenvalues()[0].real(),es.eigenvalues()[1].real());
 }
 
 QVector2D getTensorMajorEigenVector(QVector4D tensor)
