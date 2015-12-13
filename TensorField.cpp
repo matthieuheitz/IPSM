@@ -73,9 +73,8 @@ void TensorField::fillGridBasisField(QVector2D direction)
 void TensorField::generateTensorField()
 {
     qDebug()<<"Generate Tensor Field";
-    QVector2D vec(sqrt(3)/2.0f,1.0f/2.0f);
-//    QVector2D vec(1,0);
-    this->fillGridBasisField(vec);
+    this->fillGridBasisField(M_PI/3, 1);
+
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
 }
