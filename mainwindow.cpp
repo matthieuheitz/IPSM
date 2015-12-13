@@ -9,8 +9,10 @@ MainWindow::MainWindow(QWidget *parent) :
     this->mTensorFieldSize = QSize(32,32);
     this->mTensorField = new TensorField(mTensorFieldSize);
 
-    QObject::connect(ui->buttonGenerateTF, SIGNAL(clicked()), mTensorField, SLOT(generateTensorField()));
-    QObject::connect(mTensorField, SIGNAL(newTensorFieldImage(QPixmap)),ui->labelTensorFieldDisplay,SLOT(setPixmap(QPixmap)));
+    QObject::connect(ui->buttonGenerateTF, SIGNAL(clicked()),
+                     mTensorField, SLOT(generateTensorField()));
+    QObject::connect(mTensorField, SIGNAL(newTensorFieldImage(QPixmap)),
+                     ui->labelTensorFieldDisplay,SLOT(setPixmap(QPixmap)));
 }
 
 MainWindow::~MainWindow()
