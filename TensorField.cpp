@@ -58,7 +58,7 @@ void TensorField::generateTensorField()
     QVector2D vec(sqrt(3)/2.0f,1.0f/2.0f);
 //    QVector2D vec(1,0);
     this->fillGridBasisField(vec);
-    this->exportTensorVectorsImage(true, true);
+    this->exportEigenVectorsImage(true, true);
 }
 
 void TensorField::outputTensorField()
@@ -73,7 +73,7 @@ void TensorField::outputTensorField()
     }
 }
 
-QPixmap TensorField::exportTensorVectorsImage(bool drawVector1, bool drawVector2,
+QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
                                               QColor color1, QColor color2)
 {
     int imageSize = 512;
@@ -96,7 +96,7 @@ QPixmap TensorField::exportTensorVectorsImage(bool drawVector1, bool drawVector2
             {
                 painter.setPen(pen1);
                 QVector2D base = origin + QVector2D(i*dv, j*du);
-                QVector2D eigenVector = getMajorEigenVector(mData[i][j]);
+                QVector2D eigenVector = getTensorMajorEigenVector(mData[i][j]);
                 eigenVector.setX(eigenVector.x()*du/2.0f);
                 eigenVector.setY(eigenVector.y()*dv/2.0f);
                 QVector2D tip = base + eigenVector;
@@ -108,7 +108,7 @@ QPixmap TensorField::exportTensorVectorsImage(bool drawVector1, bool drawVector2
             {
                 painter.setPen(pen2);
                 QVector2D base = origin + QVector2D(i*dv, j*du);
-                QVector2D eigenVector = getMinorEigenVector(mData[i][j]);
+                QVector2D eigenVector = getTensorMinorEigenVector(mData[i][j]);
                 eigenVector.setX(eigenVector.x()*du/2.0f);
                 eigenVector.setY(eigenVector.y()*dv/2.0f);
                 QVector2D tip = base + eigenVector;
@@ -173,7 +173,7 @@ QVector2D TensorField::getMinorEigenVector(int i, int j)
 
 
 
-void roundVector2D(QVector2D vec)
+void roundVector2D(QVector2D& vec)
 {
     vec.setX(round(vec.x()));
     vec.setY(round(vec.y()));
@@ -221,12 +221,12 @@ QVector2D getTensorEigenValues(QVector4D tensor)
     return QVector2D(lambda1,-lambda1);
 }
 
-QVector2D getMajorEigenVector(QVector4D tensor)
+QVector2D getTensorMajorEigenVector(QVector4D tensor)
 {
     return getFirstVector(getTensorEigenVectors(tensor));
 }
 
-QVector2D getMinorEigenVector(QVector4D tensor)
+QVector2D getTensorMinorEigenVector(QVector4D tensor)
 {
     return getSecondVector(getTensorEigenVectors(tensor));
 }

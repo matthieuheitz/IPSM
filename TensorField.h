@@ -50,7 +50,7 @@ public:
     void outputTensorField();
 
     // Display the tensor field with 2 vectors per point
-    QPixmap exportTensorVectorsImage(bool drawVector1 = true, bool drawVector2 = false,
+    QPixmap exportEigenVectorsImage(bool drawVector1 = true, bool drawVector2 = false,
                                      QColor color1 = Qt::blue, QColor color2 = Qt::red);
 
     // Returns the major and minor eigenvectors of the tensor at index (i,j).
@@ -108,7 +108,7 @@ private:
 
 
 // Round a 2D vector
-void roundVector2D(QVector2D vec);
+void roundVector2D(QVector2D &vec);
 
 // Get the first vector of the 2x2 matrix
 QVector2D getFirstVector(QVector4D matrix);
@@ -116,19 +116,21 @@ QVector2D getFirstVector(QVector4D matrix);
 QVector2D getSecondVector(QVector4D matrix);
 
 // Returns the normalized major and minor eigenvectors of the passed tensor
+// The first column vector is the one associated with the maximum eigenvalue
 // Warning : This only works if the tensor is traceless, real and symmetrical
 QVector4D getTensorEigenVectors(QVector4D tensor);
 // Returns the major and minor eigenvalues of the passed tensor.
+// The maximum eigenvalue is first, and the minimum is second
 // Warning : This only works if the tensor is traceless, real and symmetrical
 QVector2D getTensorEigenValues(QVector4D tensor);
 // Returns the normalized major eigenvector of the passed tensor.
 // Warning : This only works if the tensor is traceless, real and symmetrical
-QVector2D getMajorEigenVector(QVector4D tensor);
+QVector2D getTensorMajorEigenVector(QVector4D tensor);
 // Returns the normalized minor eigenvector of the passed tensor.
 // Warning : This only works if the tensor is traceless, real and symmetrical
-QVector2D getMinorEigenVector(QVector4D tensor);
+QVector2D getTensorMinorEigenVector(QVector4D tensor);
 
-// Returns whether the tensor is real, symmetrical and traceless, or not.
+// Returns whether the tensor is real, symmetrical and traceless, or not
 bool isSymetricalAndTraceless(QVector4D tensor);
 // Returns whether the tensor is degenerate or not
 bool isDegenerate(QVector4D tensor);
