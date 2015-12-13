@@ -109,6 +109,10 @@ private:
 
 // Round a 2D vector
 void roundVector2D(QVector2D &vec);
+// Returns whether floating point value a is considered equal to 0
+bool isFuzzyNull(float a);
+// Returns wether floating point value a and b are considered equal
+bool isFuzzyEqual(float a, float b);
 
 // Get the first vector of the 2x2 matrix
 QVector2D getFirstVector(QVector4D matrix);

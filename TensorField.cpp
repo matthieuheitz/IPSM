@@ -233,14 +233,24 @@ QVector2D getTensorMinorEigenVector(QVector4D tensor)
 
 bool isSymetricalAndTraceless(QVector4D tensor)
 {
-    return tensor.y() == tensor.z()
-            && (tensor.x() + tensor.w() > FLOAT_COMPARISON_EPSILON );
+    return isFuzzyEqual(tensor.y(), tensor.z())
+            && isFuzzyNull(tensor.x() + tensor.w());
 }
 
 bool isDegenerate(QVector4D tensor)
 {
-    return tensor.x() < FLOAT_COMPARISON_EPSILON
-            && tensor.y() < FLOAT_COMPARISON_EPSILON
-            && tensor.z() < FLOAT_COMPARISON_EPSILON
-            && tensor.w() < FLOAT_COMPARISON_EPSILON;
+    return isFuzzyNull(tensor.x())
+            && isFuzzyNull(tensor.y())
+            && isFuzzyNull(tensor.z())
+            && isFuzzyNull(tensor.w());
+}
+
+bool isFuzzyNull(float a)
+{
+    return (fabs(a) < FLOAT_COMPARISON_EPSILON);
+}
+
+bool isFuzzyEqual(float a, float b)
+{
+    return (fabs(a - b) / FLOAT_COMPARISON_EPSILON <= fmin(fabs(a), fabs(b)));
 }
