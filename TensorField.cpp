@@ -29,17 +29,16 @@ void TensorField::setTensor(int i, int j, QVector4D tensor)
 
 void TensorField::fillGridBasisField(float theta, float l)
 {
-    float k = 2.0;
     for(int i=0; i<mFieldSize.height() ; i++)
     {
         for(int j=0; j<mFieldSize.width() ; j++)
         {
             QVector4D tensor;
-            tensor.setX(cos(k*theta));
-            tensor.setY(sin(k*theta));
-            tensor.setZ(sin(k*theta));
-            tensor.setW(-cos(k*theta));
-            tensor*=l;
+            tensor.setX(cos(2.0*theta));
+            tensor.setY(sin(2.0*theta));
+            tensor.setZ(sin(2.0*theta));
+            tensor.setW(-cos(2.0*theta));
+            tensor *= l;
             mData[i][j] = tensor;
         }
     }
@@ -48,7 +47,7 @@ void TensorField::fillGridBasisField(float theta, float l)
 
 void TensorField::fillGridBasisField(QVector2D direction)
 {
-    float theta = atan(direction.y()/direction.x());
+    float theta = atan2(direction.y(),direction.x());
     this->fillGridBasisField(theta, direction.length());
 }
 
