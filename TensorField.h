@@ -53,6 +53,21 @@ public:
     QPixmap exportTensorVectorsImage(bool drawVector1 = true, bool drawVector2 = false,
                                      QColor color1 = Qt::blue, QColor color2 = Qt::red);
 
+    // Returns the major and minor eigenvectors of the tensor at index (i,j).
+    // They are normalized, then multiplied by their respective eigenvalue.
+    // Warning : This only works if the tensor is traceless, real and symmetrical
+    QVector4D getEigenVectors(int i, int j);
+    // Returns the major and minor eigenvalues of the tensor at index (i,j).
+    // Warning : This only works if the tensor is traceless, real and symmetrical
+    QVector2D getEigenValues(int i, int j);
+    // Returns the major eigenvector of the tensor at index (i,j).
+    // It is normalized, then multiplied by its eigenvalue.
+    // Warning : This only works if the tensor is traceless, real and symmetrical
+    QVector2D getMajorEigenVector(int i, int j);
+    // Returns the minor eigenvector of the tensor at index (i,j).
+    // It is normalized, then multiplied by its eigenvalue.
+    // Warning : This only works if the tensor is traceless, real and symmetrical
+    QVector2D getMinorEigenVector(int i, int j);
 
 
 signals:
@@ -76,10 +91,16 @@ private:
     // | a  b |
     // | b -a |
     QVector<QVector<QVector4D> > mData;
-    // Field size
-    QSize mFieldSize;
+    // Eigen vectors of each tensor matrix
+    QVector<QVector<QVector4D> > mEigenVectors;
+    // Eigen values of each tensor matrix
+    QVector<QVector<QVector2D> > mEigenValues;
     // Holds wether the field has been initialized with non-zero values
     bool mFieldIsFilled;
+    // Holds wether the eigen vectors and values has been computed
+    bool mEigenIsComputed;
+    // Field size
+    QSize mFieldSize;
 };
 
 

@@ -126,6 +126,46 @@ QPixmap TensorField::exportTensorVectorsImage(bool drawVector1, bool drawVector2
     return pixmap;
 }
 
+QVector4D TensorField::getEigenVectors(int i, int j)
+{
+    if(!mEigenIsComputed)
+    {
+        qCritical()<<"Unable to get the eigen vectors."
+                   <<"First compute tensors Eigen decomposition";
+        return QVector4D();
+    }
+    else
+    {
+        return mEigenVectors[i][j];
+    }
+}
+
+QVector2D TensorField::getEigenValues(int i, int j)
+{
+    if(!mEigenIsComputed)
+    {
+        qCritical()<<"Unable to get the eigen values."
+                   <<"First compute tensors Eigen decomposition";
+        return QVector2D();
+    }
+    else
+    {
+        return mEigenValues[i][j];
+    }
+}
+
+QVector2D TensorField::getMajorEigenVector(int i, int j)
+{
+    return getFirstVector(this->getEigenVectors(i,j));
+}
+
+QVector2D TensorField::getMinorEigenVector(int i, int j)
+{
+    return getSecondVector(this->getEigenVectors(i,j));
+}
+
+
+
 
 /** ******************** */
 /** Non-member Functions */
