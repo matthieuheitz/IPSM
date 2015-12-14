@@ -52,7 +52,7 @@ void TensorField::fillRotatingField()
     {
         for(int j=0; j<mFieldSize.width() ; j++)
         {
-            float theta = M_PI*j/(mFieldSize.width()-1);
+            float theta = M_PI*j/(mFieldSize.width()-1) + i*M_PI/4/(mFieldSize.height()-1);
             QVector4D tensor;
             tensor.setX(cos(2.0*theta));
             tensor.setY(sin(2.0*theta));
@@ -73,7 +73,8 @@ void TensorField::fillGridBasisField(QVector2D direction)
 void TensorField::generateTensorField()
 {
     qDebug()<<"Generate Tensor Field";
-    this->fillGridBasisField(M_PI/3, 1);
+//    this->fillGridBasisField(M_PI/3, 1);
+    this->fillRotatingField();
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
@@ -116,14 +117,14 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
                 QVector2D base = origin + QVector2D(j*dv, i*du);
                 QVector2D eigenVector = getTensorMajorEigenVector(mData[i][j]);
                 eigenVector.setX(eigenVector.x()*du/2.0f);
-                // Flip the y axis because the painter system has its origin
-                // on the top left corner and the y axis points down
-                eigenVector.setY(-eigenVector.y()*dv/2.0f);
+                eigenVector.setY(eigenVector.y()*dv/2.0f);
                 QVector2D tip = base + eigenVector;
                 base -= eigenVector;
                 roundVector2D(base);
                 roundVector2D(tip);
-                painter.drawLine(base.x(),base.y(),tip.x(),tip.y());
+                // Flip the y axis because the painter system has its origin
+                // on the top left corner and the y axis points down
+                painter.drawLine(base.x(),imageSize - base.y(),tip.x(),imageSize - tip.y());
             }
             if(drawVector2)
             {
@@ -131,14 +132,14 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
                 QVector2D base = origin + QVector2D(j*dv, i*du);
                 QVector2D eigenVector = getTensorMinorEigenVector(mData[i][j]);
                 eigenVector.setX(eigenVector.x()*du/2.0f);
-                // Flip the y axis because the painter system has its origin
-                // on the top left corner and the y axis points down
-                eigenVector.setY(-eigenVector.y()*dv/2.0f);
+                eigenVector.setY(eigenVector.y()*dv/2.0f);
                 QVector2D tip = base + eigenVector;
                 base -= eigenVector;
                 roundVector2D(base);
                 roundVector2D(tip);
-                painter.drawLine(base.x(),base.y(),tip.x(),tip.y());
+                // Flip the y axis because the painter system has its origin
+                // on the top left corner and the y axis points down
+                painter.drawLine(base.x(),imageSize - base.y(),tip.x(),imageSize - tip.y());
             }
         }
     }
