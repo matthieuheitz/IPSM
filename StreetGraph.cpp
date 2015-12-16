@@ -16,27 +16,29 @@ StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *fiel
     mLastRoadID = 0;
 }
 
-void StreetGraph::createRandomSeedList(int numberOfSeeds)
+void StreetGraph::createRandomSeedList(int numberOfSeeds, bool append)
 {
-    qsrand(QDateTime::currentDateTime().toTime_t ());
-    if(mSeeds.size() != 0)
+    if(!append)
     {
-        qDebug()<<"Clearing seed list before filling it";
         mSeeds.clear();
     }
+    qsrand(QDateTime::currentDateTime().toTime_t());
     for(int i=0 ; i < numberOfSeeds ; i++)
     {
         float randX = qrand()/(float)RAND_MAX;
         float randY = qrand()/(float)RAND_MAX;
-        qDebug()<<"Rand = "<<randX<<", "<<randY;
         QPointF seed(mBottomLeft.x() + randX*mRegionSize.width(),
                      mBottomLeft.y() + randY*mRegionSize.height());
         mSeeds.push_back(seed);
     }
 }
 
-void StreetGraph::computeMajorHyperstreamlines()
+void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
 {
+    if(clearStorage)
+    {
+        clearStoredStreetGraph();
+    }
     if(mTensorField == NULL)
     {
         qCritical()<<"ERROR: Tensor field is empty";
@@ -97,8 +99,8 @@ void StreetGraph::computeMajorHyperstreamlines()
 void StreetGraph::generateStreetGraph()
 {
     // Compute the street graph
-    createRandomSeedList(100);
-    computeMajorHyperstreamlines();
+    createRandomSeedList(100, false);
+    computeMajorHyperstreamlines(true);
     drawStreetGraph(false);
 }
 
@@ -156,7 +158,6 @@ void StreetGraph::clearStoredStreetGraph()
 {
     mNodes.clear();
     mRoads.clear();
-    mSeeds.clear();
     mLastNodeID = 0;
     mLastRoadID = 0;
 }

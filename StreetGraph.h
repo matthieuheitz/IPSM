@@ -42,15 +42,16 @@ public:
     explicit StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField * field, QObject *parent = 0);
 
     // Create a random seed list
-    void createRandomSeedList(int numberOfSeeds);
+    void createRandomSeedList(int numberOfSeeds, bool append);
 
-    // Compute the major hyperstreamlines from the tensor field
-    void computeMajorHyperstreamlines();
+    // Compute the major hyperstreamlines from the stored tensor field
+    void computeMajorHyperstreamlines(bool clearStorage);
 
     // Draw an image with major hyperstreamlines
     QPixmap drawStreetGraph(bool showSeeds);
 
-    // Clear the stored street graph (Nodes, Roads, Seeds)
+    // Clear the stored street graph (Nodes, Roads)
+    // Warning: Doesn't clear the seed list
     void clearStoredStreetGraph();
 
     // Set the tensor field to compute street graph from
