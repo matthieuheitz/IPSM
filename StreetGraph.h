@@ -76,7 +76,7 @@ private:
     // 3rd condition: Returning to origin
     bool loopStoppingCondition(QPointF nextPosition, QVector<QPointF> &segments);
     // 4th condition: Exceeding user-defined max length
-    bool exceedingLengthStoppingCondition();
+    bool exceedingLengthStoppingCondition(QVector<QPointF>& segments);
     // 5th condition: Too close to other hyperstreamline
     bool exceedingDensityStoppingCondition();
 
@@ -109,5 +109,8 @@ std::ostream& operator<<(std::ostream& out, const Road r);
 std::ostream& operator<<(std::ostream& out, const Node n);
 // Overloads writing QPointF to std stream
 std::ostream& operator<<(std::ostream& out, const QPointF p);
+
+// Compute the length of a road
+float computePathLength(const QVector<QPointF>& segments);
 
 #endif // STREETGRAPH_H

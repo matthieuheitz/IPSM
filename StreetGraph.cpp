@@ -193,9 +193,12 @@ bool StreetGraph::loopStoppingCondition(QPointF nextPosition, QVector<QPointF>& 
     return false;
 }
 
-bool StreetGraph::exceedingLengthStoppingCondition()
+bool StreetGraph::exceedingLengthStoppingCondition(QVector<QPointF>& segments)
 {
-    Q_UNIMPLEMENTED();
+    if(computePathLength(segments) > mDistSeparation)
+    {
+        return true;
+    }
     return false;
 }
 
@@ -230,4 +233,14 @@ std::ostream& operator<<(std::ostream& out, const QPointF p)
 {
     out<<"("<<p.x()<<","<<p.y()<<")"<<std::endl;
     return out;
+}
+
+float computePathLength(const QVector<QPointF>& segments)
+{
+    float length = 0;
+    for(int i=1 ; i<segments.size() ; i++)
+    {
+        length += QVector2D(segments[i]-segments[i-1]).length();
+    }
+    return length;
 }
