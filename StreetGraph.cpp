@@ -44,12 +44,9 @@ void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
         qCritical()<<"ERROR: Tensor field is empty";
         return;
     }
-    if(mSeeds.size() == 0)
-    {
-        qCritical()<<"ERROR: The seed list is empty. First fill it by "
-                 <<"calling createRandomSeedList or another filling function";
-        return;
-    }
+    // Generate the seeds
+    createRandomSeedList(500, false);
+
     QSize fieldSize = mTensorField->getFieldSize();
     for(int k=0 ; k<mSeeds.size() ; k++)
     {
@@ -101,7 +98,6 @@ void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
 void StreetGraph::generateStreetGraph()
 {
     // Compute the street graph
-    createRandomSeedList(100, false);
     computeMajorHyperstreamlines(true);
     drawStreetGraph(false);
 }
