@@ -5,6 +5,7 @@
 #include <QSize>
 
 #include "TensorField.h"
+#include "StreetGraph.h"
 
 namespace Ui {
 class MainWindow;
@@ -25,6 +26,7 @@ private:
     Ui::MainWindow *ui;
     TensorField * mTensorField;
     QSize mTensorFieldSize;
+    StreetGraph * mStreetGraph;
 };
 
 #endif // MAINWINDOW_H

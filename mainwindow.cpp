@@ -8,11 +8,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     mTensorFieldSize = QSize(32,32);
     mTensorField = new TensorField(mTensorFieldSize);
+    mStreetGraph = new StreetGraph(QPointF(0,0), QPointF(100,100),mTensorField);
 
     QObject::connect(ui->buttonGenerateTF, SIGNAL(clicked()),
                      mTensorField, SLOT(generateTensorField()));
     QObject::connect(mTensorField, SIGNAL(newTensorFieldImage(QPixmap)),
                      ui->labelTensorFieldDisplay,SLOT(setPixmap(QPixmap)));
+    QObject::connect(ui->buttonGeneratePrincipalRG, SIGNAL(clicked()),
+                     mStreetGraph, SLOT(generateStreetGraph()));
+    QObject::connect(mStreetGraph, SIGNAL(newStreetGraphImage(QPixmap)),
+                     ui->labelRoadmapDisplay, SLOT(setPixmap(QPixmap)));
 }
 
 MainWindow::~MainWindow()

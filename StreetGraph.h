@@ -47,7 +47,11 @@ public:
 
 signals:
 
+    void newStreetGraphImage(QPixmap);
+
 public slots:
+
+    void generateStreetGraph();
 
 private:
 

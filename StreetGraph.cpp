@@ -93,6 +93,13 @@ void StreetGraph::computeMajorHyperstreamlines()
     }
 }
 
+void StreetGraph::generateStreetGraph()
+{
+    // Compute the street graph
+    createRandomSeedList(100);
+    computeMajorHyperstreamlines();
+}
+
 bool StreetGraph::boundaryStoppingCondition(QPointF nextPosition)
 {
     if(nextPosition.x() <= mBottomLeft.x()
