@@ -79,7 +79,7 @@ void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
                 currentDirection = QVector2D(currentPosition-road.segments.last());
             }
             road.segments.push_back(currentPosition);
-            // Make a function for that
+            // TODO: Make a function for that
             int i = round((currentPosition.y()-mBottomLeft.y())/mRegionSize.height()*
                         (fieldSize.height()-1));
             int j = round((currentPosition.x()-mBottomLeft.x())/mRegionSize.width()*
@@ -90,7 +90,9 @@ void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
                 majorDirection *= -1;
             }
             QPointF nextPosition = currentPosition + (step*majorDirection).toPointF();
-            stopGrowth = boundaryStoppingCondition(nextPosition);
+            stopGrowth = boundaryStoppingCondition(nextPosition)
+                      || degeneratePointStoppingCondition(i,j)
+                      || loopStoppingCondition(nextPosition,road.segments);
             currentPosition = nextPosition;
         }
     }
@@ -174,15 +176,20 @@ bool StreetGraph::boundaryStoppingCondition(QPointF nextPosition)
     return false;
 }
 
-bool StreetGraph::degeneratePointStoppingCondition()
+bool StreetGraph::degeneratePointStoppingCondition(int i, int j)
 {
-    Q_UNIMPLEMENTED();
-    return false;
+    return isDegenerate(mTensorField->getTensor(i,j));
 }
 
-bool StreetGraph::loopStoppingCondition()
+bool StreetGraph::loopStoppingCondition(QPointF nextPosition, QVector<QPointF>& segments)
 {
-    Q_UNIMPLEMENTED();
+    // TODO : Look for a better way to compare
+    // It needs a larger span (maybe function of dSeperation)
+    if(isFuzzyEqual(nextPosition.x(),segments.first().x())
+       && isFuzzyEqual(nextPosition.y(),segments.first().y()))
+    {
+        return true;
+    }
     return false;
 }
 

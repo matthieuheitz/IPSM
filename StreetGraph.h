@@ -72,9 +72,9 @@ private:
     // 1st condition: Reaching boundary
     bool boundaryStoppingCondition(QPointF nextPosition);
     // 2nd condition: Reaching a degenerate point
-    bool degeneratePointStoppingCondition();
+    bool degeneratePointStoppingCondition(int i, int j);
     // 3rd condition: Returning to origin
-    bool loopStoppingCondition();
+    bool loopStoppingCondition(QPointF nextPosition, QVector<QPointF> &segments);
     // 4th condition: Exceeding user-defined max length
     bool exceedingLengthStoppingCondition();
     // 5th condition: Too close to other hyperstreamline
