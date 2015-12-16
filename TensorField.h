@@ -91,8 +91,8 @@ private:
     // Tensor field
     // A tensor is stored with a QVector4D.
     // The coordinates are as follows:
-    // | x  w |
-    // | y  z |
+    // | x  z |
+    // | y  w |
     // A traceless, real, symmetrical tensor is of the form:
     // | a  b |
     // | b -a |

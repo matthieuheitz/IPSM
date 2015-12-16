@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QSize>
 
-#include <TensorField.h>
+#include "TensorField.h"
 
 namespace Ui {
 class MainWindow;

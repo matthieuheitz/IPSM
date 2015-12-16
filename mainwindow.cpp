@@ -6,8 +6,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->mTensorFieldSize = QSize(32,32);
-    this->mTensorField = new TensorField(mTensorFieldSize);
+    mTensorFieldSize = QSize(32,32);
+    mTensorField = new TensorField(mTensorFieldSize);
 
     QObject::connect(ui->buttonGenerateTF, SIGNAL(clicked()),
                      mTensorField, SLOT(generateTensorField()));
