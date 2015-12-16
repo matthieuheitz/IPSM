@@ -53,6 +53,9 @@ public:
     // Clear the stored street graph (Nodes, Roads, Seeds)
     void clearStoredStreetGraph();
 
+    // Set the tensor field to compute street graph from
+    void setTensorField(TensorField * field) {mTensorField = field;}
+
 signals:
 
     // Fired when a new image is drawn
