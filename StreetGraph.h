@@ -15,6 +15,7 @@ enum RoadType {
     Secondary
 };
 
+// Structure to store a road
 struct Road {
     QVector<QPointF> segments;
     int nodeID1;
@@ -22,12 +23,14 @@ struct Road {
     RoadType type;
 };
 
+// Structure to store an intersection (node)
 struct Node {
     QPointF position;
     QVector<int> connectedNodeIDs;
     QVector<int> connectedRoadIDs;
 };
 
+// Convenience typedefs
 typedef QMap<int,Node>::iterator NodeMapIterator;
 typedef QMap<int,Road>::iterator RoadMapIterator;
 
@@ -35,14 +38,13 @@ class StreetGraph : public QObject
 {
     Q_OBJECT
 public:
-    // Construct a graph within limits passed
-    //
+    // Construct a StreetGraph object within limits passed
     explicit StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField * field, QObject *parent = 0);
 
     // Create a random seed list
     void createRandomSeedList(int numberOfSeeds);
 
-    // Compute the street graph from the tensor field
+    // Compute the major hyperstreamlines from the tensor field
     void computeMajorHyperstreamlines();
 
     // Draw an image with major hyperstreamlines
@@ -50,10 +52,12 @@ public:
 
 signals:
 
+    // Fired when a new image is drawn
     void newStreetGraphImage(QPixmap);
 
 public slots:
 
+    // Main function : compute and draw the street graph
     void generateStreetGraph();
 
 private:
