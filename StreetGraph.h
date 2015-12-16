@@ -42,11 +42,26 @@ public:
     // Create a random seed list
     void createRandomSeedList(int numberOfSeeds);
 
+    // Compute the street graph from the tensor field
+    void computeMajorHyperstreamlines();
+
 signals:
 
 public slots:
 
 private:
+
+    // 1st condition: Reaching boundary
+    bool boundaryStoppingCondition(QPointF nextPosition);
+    // 2nd condition: Reaching a degenerate point
+    bool degeneratePointStoppingCondition();
+    // 3rd condition: Returning to origin
+    bool loopStoppingCondition();
+    // 4th condition: Exceeding user-defined max length
+    bool exceedingLengthStoppingCondition();
+    // 5th condition: Too close to other hyperstreamline
+    bool exceedingDensityStoppingCondition();
+
 
     // Tensor field
     TensorField * mTensorField;
