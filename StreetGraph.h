@@ -50,6 +50,9 @@ public:
     // Draw an image with major hyperstreamlines
     QPixmap drawStreetGraph(bool showSeeds);
 
+    // Clear the stored street graph (Nodes, Roads, Seeds)
+    void clearStoredStreetGraph();
+
 signals:
 
     // Fired when a new image is drawn

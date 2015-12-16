@@ -152,6 +152,15 @@ QPixmap StreetGraph::drawStreetGraph(bool showSeeds)
     return pixmap;
 }
 
+void StreetGraph::clearStoredStreetGraph()
+{
+    mNodes.clear();
+    mRoads.clear();
+    mSeeds.clear();
+    mLastNodeID = 0;
+    mLastRoadID = 0;
+}
+
 bool StreetGraph::boundaryStoppingCondition(QPointF nextPosition)
 {
     if(nextPosition.x() <= mBottomLeft.x()
