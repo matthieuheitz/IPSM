@@ -45,6 +45,9 @@ public:
     // Compute the street graph from the tensor field
     void computeMajorHyperstreamlines();
 
+    // Draw an image with major hyperstreamlines
+    QPixmap drawStreetGraph(bool showSeeds);
+
 signals:
 
     void newStreetGraphImage(QPixmap);

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <QPainter>
 #include <QDateTime>
 
 #include "StreetGraph.h"
@@ -98,6 +99,57 @@ void StreetGraph::generateStreetGraph()
     // Compute the street graph
     createRandomSeedList(100);
     computeMajorHyperstreamlines();
+    drawStreetGraph(false);
+}
+
+QPixmap StreetGraph::drawStreetGraph(bool showSeeds)
+{
+    // Draw it in an image
+    QSize imageSize(512,512);
+    QPixmap pixmap(imageSize);
+    pixmap.fill();
+
+    QPainter painter(&pixmap);
+    QPen penRoad(Qt::blue);
+    penRoad.setWidth(2);
+    QPen penNode(Qt::red);
+    penNode.setWidth(3);
+
+    NodeMapIterator itn = mNodes.begin(), itn_end = mNodes.end();
+    RoadMapIterator itr = mRoads.begin(), itr_end = mRoads.end();
+
+    // Draw the roads
+    for(; itr != itr_end ; itr++)
+    {
+        painter.setPen(penRoad);
+        for(int i=1 ; i < itr->segments.size() ; i++)
+        {
+            QPointF a = itr->segments[i-1];
+            QPointF b = itr->segments[i];
+            a.rx() *= imageSize.width()/mRegionSize.width();
+            a.ry() *= imageSize.height()/mRegionSize.height();
+            a.ry() = imageSize.height() - a.y();
+            b.rx() *= imageSize.width()/mRegionSize.width();
+            b.ry() *= imageSize.height()/mRegionSize.height();
+            b.ry() = imageSize.height() - b.y();
+            painter.drawLine(a, b);
+        }
+    }
+    // Draw the nodes (seeds)
+    if(showSeeds)
+    {
+        for(; itn != itn_end ; itn++)
+        {
+            painter.setPen(penNode);
+            QPointF a = itn->position;
+            a.rx() *= imageSize.width()/mRegionSize.width();
+            a.ry() *= imageSize.height()/mRegionSize.height();
+            a.ry() = imageSize.height() - a.y();
+            painter.drawPoint(a);
+        }
+    }
+    emit newStreetGraphImage(pixmap);
+    return pixmap;
 }
 
 bool StreetGraph::boundaryStoppingCondition(QPointF nextPosition)
