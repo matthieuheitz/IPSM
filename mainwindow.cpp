@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     mTensorFieldSize = QSize(32,32);
     mTensorField = new TensorField(mTensorFieldSize);
-    mStreetGraph = new StreetGraph(QPointF(0,0), QPointF(100,100),mTensorField);
+    mStreetGraph = new StreetGraph(QPointF(0,0), QPointF(100,100),mTensorField,10);
 
     QObject::connect(ui->buttonGenerateTF, SIGNAL(clicked()),
                      mTensorField, SLOT(generateTensorField()));

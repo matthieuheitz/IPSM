@@ -5,8 +5,8 @@
 
 #include "StreetGraph.h"
 
-StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *field, QObject *parent) :
-    QObject(parent), mTensorField(field), mBottomLeft(bottomLeft), mTopRight(topRight)
+StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *field, float distSeparation, QObject *parent) :
+    QObject(parent), mTensorField(field), mBottomLeft(bottomLeft), mTopRight(topRight), mDistSeparation(distSeparation)
 {
     mRegionSize.rwidth() = (topRight-bottomLeft).x();
     mRegionSize.rheight() = (topRight-bottomLeft).y();

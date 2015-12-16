@@ -39,7 +39,7 @@ class StreetGraph : public QObject
     Q_OBJECT
 public:
     // Construct a StreetGraph object within limits passed
-    explicit StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField * field, QObject *parent = 0);
+    explicit StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField * field, float distSeparation, QObject *parent = 0);
 
     // Create a random seed list
     void createRandomSeedList(int numberOfSeeds, bool append);
@@ -98,6 +98,8 @@ private:
     // Last IDs for Nodes and Roads
     int mLastNodeID;
     int mLastRoadID;
+    // Distance for road density
+    float mDistSeparation;
 
 };
 
