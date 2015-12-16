@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QSize>
+#include <QKeyEvent>
 
 #include "TensorField.h"
 #include "StreetGraph.h"
@@ -18,6 +19,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+protected:
+    void keyPressEvent(QKeyEvent *event);
 
 private slots:
     void displayVectorFieldImage(QPixmap image);

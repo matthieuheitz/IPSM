@@ -70,6 +70,27 @@ void TensorField::fillGridBasisField(QVector2D direction)
     this->fillGridBasisField(theta, direction.length());
 }
 
+void TensorField::fillRadialBasisField(QVector2D direction)
+{
+    float x;
+    float y;
+    for(int i=0; i<mFieldSize.height() ; i++)
+    {
+        for(int j=0; j<mFieldSize.width() ; j++)
+        {
+            x = ((float)i/mFieldSize.height() - direction.x());
+            y = ((float)j/mFieldSize.width() - direction.y());
+            QVector4D tensor;
+            tensor.setX(-(pow(y,2.0)-pow(x,2.0)));
+            tensor.setY(-2*x*y);
+            tensor.setZ(-2*x*y);
+            tensor.setW((pow(y,2.0)-pow(x,2.0)));
+            mData[i][j] = tensor;
+        }
+    }
+    mFieldIsFilled = true;
+}
+
 void TensorField::generateTensorField()
 {
     qDebug()<<"Generate Tensor Field";
