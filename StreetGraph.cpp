@@ -1,4 +1,6 @@
 #include <iostream>
+#include <QDateTime>
+
 #include "StreetGraph.h"
 
 StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *field, QObject *parent) :
@@ -10,6 +12,25 @@ StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *fiel
              <<mRegionSize.height();
     mLastNodeID = 0;
     mLastRoadID = 0;
+}
+
+void StreetGraph::createRandomSeedList(int numberOfSeeds)
+{
+    qsrand(QDateTime::currentDateTime().toTime_t ());
+    if(mSeeds.size() != 0)
+    {
+        qDebug()<<"Clearing seed list before filling it";
+        mSeeds.clear();
+    }
+    for(int i=0 ; i < numberOfSeeds ; i++)
+    {
+        float randX = qrand()/(float)RAND_MAX;
+        float randY = qrand()/(float)RAND_MAX;
+        qDebug()<<"Rand = "<<randX<<", "<<randY;
+        QPointF seed(mBottomLeft.x() + randX*mRegionSize.width(),
+                     mBottomLeft.y() + randY*mRegionSize.height());
+        mSeeds.push_back(seed);
+    }
 }
 
 std::ostream& operator<<(std::ostream& out, const Road r)

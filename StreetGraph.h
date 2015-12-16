@@ -39,6 +39,9 @@ public:
     //
     explicit StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField * field, QObject *parent = 0);
 
+    // Create a random seed list
+    void createRandomSeedList(int numberOfSeeds);
+
 signals:
 
 public slots:
@@ -51,6 +54,8 @@ private:
     QMap<int,Node> mNodes;
     // Container for roads
     QMap<int,Road> mRoads;
+    // Container for seeds
+    QVector<QPointF> mSeeds;
     // Height and width of the region
     QSizeF mRegionSize;
     // Coordinates of the bottom left point
