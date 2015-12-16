@@ -30,3 +30,9 @@ void MainWindow::displayVectorFieldImage(QPixmap image)
 {
     ui->labelTensorFieldDisplay->setPixmap(image);
 }
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key()==Qt::Key_Escape)
+        exit(0);
+}

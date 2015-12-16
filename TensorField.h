@@ -42,6 +42,8 @@ public:
     // Don't normalize the vector as this function
     // integrates the vector's norm in the tensor
     void fillGridBasisField(QVector2D direction);
+    // Generate a radial basis field from a 2D vector
+    void fillRadialBasisField(QVector2D direction);
     // Generate a grid basis function from an angle and an amplitude.
     // There is no direction, so theta and theta + pi give the same result
     void fillGridBasisField(float theta, float l);
