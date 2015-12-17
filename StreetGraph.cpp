@@ -214,7 +214,11 @@ bool StreetGraph::boundaryStoppingCondition(QPointF nextPosition)
 
 bool StreetGraph::degeneratePointStoppingCondition(int i, int j)
 {
-    return isDegenerate(mTensorField->getTensor(i,j));
+    if(isDegenerate(mTensorField->getTensor(i,j)))
+    {
+        return true;
+    }
+    return false;
 }
 
 bool StreetGraph::loopStoppingCondition(QPointF nextPosition, const QVector<QPointF>& segments)
