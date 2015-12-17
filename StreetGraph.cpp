@@ -135,10 +135,96 @@ void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
     }
 }
 
+void StreetGraph::computeStreetGraph(bool clearStorage)
+{
+    if(clearStorage)
+    {
+        clearStoredStreetGraph();
+    }
+    if(mTensorField == NULL)
+    {
+        qCritical()<<"ERROR: Tensor field is empty";
+        return;
+    }
+    // Generate the seeds
+    createRandomSeedList(50, false);
+    float step = mRegionSize.height()/100.0f; // Should be function of curvature
+    QSize fieldSize = mTensorField->getFieldSize();
+    bool majorGrowth = true;
+    while(!mSeeds.isEmpty())
+    {
+        // Create a node
+        // Grow a road starting from this node using the tensor eigen vector
+        // until one of the condition is reached
+        Node& node1 = mNodes[++mLastNodeID];
+        Road& road = mRoads[++mLastRoadID];
+
+        node1.position = mSeeds.last();
+        road.type = Principal;
+
+        node1.connectedRoadIDs.push_back(mLastRoadID);
+        road.nodeID1 = mLastNodeID;
+
+        // The road contains also the position of its extreme nodes
+        // Start from the node position
+        QPointF currentPosition = node1.position;
+        // Holds wether road stopped because it was too long or not
+        bool tooLong;
+        bool stopGrowth = false;
+        while(!stopGrowth)
+        {
+            QVector2D currentDirection;
+            if(road.segments.size() != 0)
+            {
+                currentDirection = QVector2D(currentPosition-road.segments.last());
+            }
+            road.segments.push_back(currentPosition);
+            // TODO: Make a function for that
+            int i = round((currentPosition.y()-mBottomLeft.y())/mRegionSize.height()*
+                        (fieldSize.height()-1));
+            int j = round((currentPosition.x()-mBottomLeft.x())/mRegionSize.width()*
+                        (fieldSize.width()-1));
+            QVector2D majorDirection;
+            if(majorGrowth)
+            {
+                majorDirection = mTensorField->getMajorEigenVector(i,j);
+                if(QVector2D::dotProduct(majorDirection,currentDirection) < 0)
+                {
+                    majorDirection *= -1;
+                }
+            }
+            else
+            {
+                majorDirection = mTensorField->getMinorEigenVector(i,j);
+            }
+            QPointF nextPosition = currentPosition + (step*majorDirection).toPointF();
+            tooLong = exceedingLengthStoppingCondition(road.segments);
+            stopGrowth = boundaryStoppingCondition(nextPosition)
+                      || degeneratePointStoppingCondition(i,j)
+                      || loopStoppingCondition(nextPosition,road.segments)
+                      || tooLong;
+            currentPosition = nextPosition;
+        }
+        majorGrowth = !majorGrowth;
+        std::cout<<"Seed size: before = "<<mSeeds.size();
+        mSeeds.pop_back();
+        std::cout<<" after = "<<mSeeds.size()<<std::endl;
+        if(tooLong)
+        {
+            // TODO: Add only if it's not too close from another seed
+            if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation))
+            {
+                mSeeds.push_back(road.segments.last());
+            }
+        }
+    }
+}
+
 void StreetGraph::generateStreetGraph()
 {
     // Compute the street graph
-    computeMajorHyperstreamlines(true);
+    computeStreetGraph(true);
+//    computeMajorHyperstreamlines(true);
     drawStreetGraph(false);
 }
 

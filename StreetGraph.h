@@ -53,6 +53,9 @@ public:
     // Compute the major hyperstreamlines from the stored tensor field
     void computeMajorHyperstreamlines(bool clearStorage);
 
+    // Compute the street graph from the stored tensor field
+    void computeStreetGraph(bool clearStorage);
+
     // Draw an image with major hyperstreamlines
     QPixmap drawStreetGraph(bool showSeeds);
 
