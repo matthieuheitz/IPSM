@@ -70,7 +70,7 @@ void TensorField::fillGridBasisField(QVector2D direction)
     this->fillGridBasisField(theta, direction.length());
 }
 
-void TensorField::fillRadialBasisField(QVector2D direction)
+void TensorField::fillRadialBasisField(QPointF center)
 {
     float x;
     float y;
@@ -78,13 +78,13 @@ void TensorField::fillRadialBasisField(QVector2D direction)
     {
         for(int j=0; j<mFieldSize.width() ; j++)
         {
-            x = ((float)i/mFieldSize.height() - direction.x());
-            y = ((float)j/mFieldSize.width() - direction.y());
+            x = ((float)j/(mFieldSize.height()-1) - center.x());
+            y = ((float)i/(mFieldSize.width()-1) - center.y());
             QVector4D tensor;
-            tensor.setX(-(pow(y,2.0)-pow(x,2.0)));
+            tensor.setX((std::pow(y,2.0)-std::pow(x,2.0)));
             tensor.setY(-2*x*y);
             tensor.setZ(-2*x*y);
-            tensor.setW((pow(y,2.0)-pow(x,2.0)));
+            tensor.setW(-(std::pow(y,2.0)-std::pow(x,2.0)));
             mData[i][j] = tensor;
         }
     }
