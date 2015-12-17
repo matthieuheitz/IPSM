@@ -177,7 +177,7 @@ bool StreetGraph::degeneratePointStoppingCondition(int i, int j)
     return isDegenerate(mTensorField->getTensor(i,j));
 }
 
-bool StreetGraph::loopStoppingCondition(QPointF nextPosition, QVector<QPointF>& segments)
+bool StreetGraph::loopStoppingCondition(QPointF nextPosition, const QVector<QPointF>& segments)
 {
     // TODO : Look for a better way to compare
     // It needs a larger span (maybe function of dSeperation)
@@ -189,7 +189,7 @@ bool StreetGraph::loopStoppingCondition(QPointF nextPosition, QVector<QPointF>& 
     return false;
 }
 
-bool StreetGraph::exceedingLengthStoppingCondition(QVector<QPointF>& segments)
+bool StreetGraph::exceedingLengthStoppingCondition(const QVector<QPointF>& segments)
 {
     if(computePathLength(segments) > mDistSeparation)
     {
