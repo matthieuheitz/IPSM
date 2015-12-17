@@ -50,6 +50,8 @@ public:
     // Generate a grid basis function from an angle and an amplitude.
     // There is no direction, so theta and theta + pi give the same result
     void fillGridBasisField(float theta, float l);
+    // Generate a heightmap basis function from a filename
+    void fillHeightBasisField(QString filename);
     // Test function to check the different angles
     void fillRotatingField();
 
@@ -112,6 +114,8 @@ private:
     bool mEigenIsComputed;
     // Field size
     QSize mFieldSize;
+    // HeightMap
+    QImage mHeightMap;
 };
 
 
