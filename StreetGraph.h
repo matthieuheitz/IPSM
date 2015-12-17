@@ -44,6 +44,12 @@ public:
     // Create a random seed list
     void createRandomSeedList(int numberOfSeeds, bool append);
 
+    // Create a random seed list that respect a certain density
+    void createDensityConstrainedSeedList(int numberOfSeeds, bool append);
+
+    // Returns wether the point is too close from one of the existing seeds
+    bool pointRespectSeedSeparationDistance(QPointF point, float separationDistance);
+
     // Compute the major hyperstreamlines from the stored tensor field
     void computeMajorHyperstreamlines(bool clearStorage);
 

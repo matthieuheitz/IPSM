@@ -33,6 +33,46 @@ void StreetGraph::createRandomSeedList(int numberOfSeeds, bool append)
     }
 }
 
+void StreetGraph::createDensityConstrainedSeedList(int numberOfSeeds, bool append)
+{
+    if(!append)
+    {
+        mSeeds.clear();
+    }
+    qsrand(QDateTime::currentDateTime().toTime_t());
+    for(int i=0 ; i < numberOfSeeds ; i++)
+    {
+        int counter = 0;
+        bool pointIsValid;
+        QPointF seed;
+        while(!pointIsValid && counter < 10)
+        {
+            float randX = qrand()/(float)RAND_MAX;
+            float randY = qrand()/(float)RAND_MAX;
+            seed = QPointF(mBottomLeft.x() + randX*mRegionSize.width(),
+                         mBottomLeft.y() + randY*mRegionSize.height());
+            pointIsValid = pointRespectSeedSeparationDistance(seed,mDistSeparation);
+            counter++;
+        }
+        if(pointIsValid)
+        {
+            mSeeds.push_back(seed);
+        }
+    }
+}
+
+bool StreetGraph::pointRespectSeedSeparationDistance(QPointF point, float separationDistance)
+{
+    for(int i=0 ; i < mSeeds.size() ; i++)
+    {
+        if(QVector2D(mSeeds[i]-point).length() < separationDistance)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
 {
     if(clearStorage)
