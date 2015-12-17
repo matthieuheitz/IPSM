@@ -128,17 +128,21 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
     float du = imageSize/(float)mFieldSize.width();
     QVector2D origin(du/2.0f, dv/2.0f);
 
-    for(int i=0; i<mFieldSize.height() ; i++)
+    int scale_i = mFieldSize.height()/64;
+    int scale_j = mFieldSize.width()/64;
+
+
+    for(int i=0; i<mFieldSize.height() ; i=i+scale_i)
     {
-        for(int j=0; j<mFieldSize.width() ; j++)
+        for(int j=0; j<mFieldSize.width() ; j=j+scale_j)
         {
             if(drawVector1)
             {
                 painter.setPen(pen1);
                 QVector2D base = origin + QVector2D(j*dv, i*du);
                 QVector2D eigenVector = getTensorMajorEigenVector(mData[i][j]);
-                eigenVector.setX(eigenVector.x()*du/2.0f);
-                eigenVector.setY(eigenVector.y()*dv/2.0f);
+                eigenVector.setX(eigenVector.x()*du/2.0f*scale_i*0.8);
+                eigenVector.setY(eigenVector.y()*dv/2.0f*scale_j*0.8);
                 QVector2D tip = base + eigenVector;
                 base -= eigenVector;
                 roundVector2D(base);
@@ -152,8 +156,8 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
                 painter.setPen(pen2);
                 QVector2D base = origin + QVector2D(j*dv, i*du);
                 QVector2D eigenVector = getTensorMinorEigenVector(mData[i][j]);
-                eigenVector.setX(eigenVector.x()*du/2.0f);
-                eigenVector.setY(eigenVector.y()*dv/2.0f);
+                eigenVector.setX(eigenVector.x()*du/2.0f*scale_i*0.8);
+                eigenVector.setY(eigenVector.y()*dv/2.0f*scale_j*0.8);
                 QVector2D tip = base + eigenVector;
                 base -= eigenVector;
                 roundVector2D(base);
