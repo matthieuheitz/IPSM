@@ -84,8 +84,12 @@ signals:
 
 public slots:
 
-    // Generates a tensor field with default parameters
-    void generateTensorField();
+    // Generates a grid tensor field with default parameters
+    void generateGridTensorField();
+    // Generates a multi-rotation tensor field (linear variation)
+    void generateMultiRotationTensorField();
+    // Generates a radial tensor field with default parameters
+    void generateRadialTensorField();
     // Compute the eigen vectors and values of each tensor in the field,
     // and store them internally.
     // Return the number of degenerate points (null eigenvectors)

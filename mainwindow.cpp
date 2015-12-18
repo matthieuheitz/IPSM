@@ -10,8 +10,12 @@ MainWindow::MainWindow(QWidget *parent) :
     mTensorField = new TensorField(mTensorFieldSize);
     mStreetGraph = new StreetGraph(QPointF(0,0), QPointF(100,100),mTensorField,10);
 
-    QObject::connect(ui->buttonGenerateTF, SIGNAL(clicked()),
-                     mTensorField, SLOT(generateTensorField()));
+    QObject::connect(ui->buttonGenerateGridTF, SIGNAL(clicked()),
+                     mTensorField, SLOT(generateGridTensorField()));
+    QObject::connect(ui->buttonGenerateMultiRotTF, SIGNAL(clicked()),
+                     mTensorField, SLOT(generateMultiRotationTensorField()));
+    QObject::connect(ui->buttonGenerateRadialTF, SIGNAL(clicked()),
+                     mTensorField, SLOT(generateRadialTensorField()));
     QObject::connect(mTensorField, SIGNAL(newTensorFieldImage(QPixmap)),
                      ui->labelTensorFieldDisplay,SLOT(setPixmap(QPixmap)));
     QObject::connect(ui->buttonGeneratePrincipalRG, SIGNAL(clicked()),
