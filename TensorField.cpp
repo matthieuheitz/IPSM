@@ -61,8 +61,8 @@ void TensorField::fillHeightBasisField(QString filename)
             col_current = mHeightMap.pixel(i,j);
             col_i = mHeightMap.pixel(i+1,j);
             col_j = mHeightMap.pixel(i,j+1);
-            grad.setX(col_current.blue()-col_i.blue());
-            grad.setY(col_current.blue()-col_j.blue());
+            grad.setX(col_current.blue()-col_j.blue());
+            grad.setY(col_current.blue()-col_i.blue());
             theta = atan2(grad.y(),grad.x()) + M_PI/2.0;
             r = std::sqrt(std::pow(grad.y(),2.0) + std::pow(grad.x(),2.0));
             tensor.setX(cos(2.0*theta));
