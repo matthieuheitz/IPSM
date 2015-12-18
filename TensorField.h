@@ -114,8 +114,6 @@ private:
     bool mEigenIsComputed;
     // Field size
     QSize mFieldSize;
-    // HeightMap
-    QImage mHeightMap;
 };
 
 
