@@ -31,7 +31,7 @@ public:
     // Get the tensor field size
     QSize getFieldSize() {return this->mFieldSize;}
     // Set the tensor field size
-    void setFieldSize(QSize fieldSize) {this->mFieldSize = fieldSize;}
+    void setFieldSize(QSize fieldSize);
 
     // Returns whether the field has been filled with non-zero values
     bool isFieldFilled();

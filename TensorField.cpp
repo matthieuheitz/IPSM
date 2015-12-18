@@ -28,6 +28,17 @@ void TensorField::setTensor(int i, int j, QVector4D tensor)
     mData[i][j] = tensor;
 }
 
+void TensorField::setFieldSize(QSize fieldSize)
+{
+    mFieldSize = fieldSize;
+    mData.resize(fieldSize.height());
+    for(int i=0 ; i < fieldSize.height() ; i++)
+    {
+        mData[i].resize(fieldSize.width());
+    }
+    mFieldIsFilled = false;
+}
+
 void TensorField::fillGridBasisField(float theta, float l)
 {
     for(int i=0; i<mFieldSize.height() ; i++)
