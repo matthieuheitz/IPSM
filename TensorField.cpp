@@ -137,8 +137,8 @@ void TensorField::generateTensorField()
 {
     qDebug()<<"Generate Tensor Field";
 //    this->fillGridBasisField(M_PI/3, 1);
-    this->fillRotatingField();
-    this->fillHeightBasisField("../img.jpg");
+//    this->fillRotatingField();
+    this->fillHeightBasisField("../heightmap.png");
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
