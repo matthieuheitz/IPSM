@@ -57,36 +57,6 @@ void TensorField::fillGridBasisField(float theta, float l)
     mFieldIsFilled = true;
 }
 
-void TensorField::fillHeightBasisField(QString filename)
-{
-    mHeightMap = QImage(filename);
-    QColor col_current, col_i, col_j;
-    std::cout<<col_current.green()<<std::endl;
-    QVector2D grad;
-    float theta, r;
-    for(int i=0; i<mFieldSize.height() ; i++)
-    {
-        for(int j=0; j<mFieldSize.width() ; j++)
-        {
-            QVector4D tensor;
-            col_current = mHeightMap.pixel(i,j);
-            col_i = mHeightMap.pixel(i+1,j);
-            col_j = mHeightMap.pixel(i,j+1);
-            grad.setX(col_current.blue()-col_j.blue());
-            grad.setY(col_current.blue()-col_i.blue());
-            theta = atan2(grad.y(),grad.x()) + M_PI/2.0;
-            r = std::sqrt(std::pow(grad.y(),2.0) + std::pow(grad.x(),2.0));
-            tensor.setX(cos(2.0*theta));
-            tensor.setY(sin(2.0*theta));
-            tensor.setZ(sin(2.0*theta));
-            tensor.setW(-cos(2.0*theta));
-            tensor *= r;
-            mData[i][j] = tensor;
-        }
-    }
-    mFieldIsFilled = true;
-
-}
 void TensorField::fillRotatingField()
 {
     for(int i=0; i<mFieldSize.height() ; i++)
@@ -107,8 +77,39 @@ void TensorField::fillRotatingField()
 
 void TensorField::fillGridBasisField(QVector2D direction)
 {
-    float theta = atan2(direction.y(),direction.x());
+    float theta = std::atan2(direction.y(),direction.x());
     this->fillGridBasisField(theta, direction.length());
+}
+
+void TensorField::fillHeightBasisField(QString filename)
+{
+    QImage mHeightMap = QImage(filename);
+    this->setFieldSize(mHeightMap.size());
+    QColor currentPixel, nextPixelI, nextPixelJ;
+    QVector2D grad;
+    float theta, r;
+    for(int i=0; i<mFieldSize.height()-1 ; i++)
+    {
+        for(int j=0; j<mFieldSize.width()-1 ; j++)
+        {
+            QVector4D tensor;
+            currentPixel = mHeightMap.pixel(i,j);
+            nextPixelI = mHeightMap.pixel(i+1,j);
+            nextPixelJ = mHeightMap.pixel(i,j+1);
+            grad.setX(currentPixel.blue()-nextPixelJ.blue());
+            grad.setY(currentPixel.blue()-nextPixelI.blue());
+            theta = std::atan2(grad.y(),grad.x()) + M_PI/2.0;
+            r = std::sqrt(std::pow(grad.y(),2.0) + std::pow(grad.x(),2.0));
+            tensor.setX(cos(2.0*theta));
+            tensor.setY(sin(2.0*theta));
+            tensor.setZ(sin(2.0*theta));
+            tensor.setW(-cos(2.0*theta));
+            tensor *= r;
+            mData[i][j] = tensor;
+        }
+    }
+    mFieldIsFilled = true;
+
 }
 
 void TensorField::fillRadialBasisField(QPointF center)
