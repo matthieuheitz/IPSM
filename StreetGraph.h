@@ -47,6 +47,9 @@ public:
     // Create a random seed list that respect a certain density
     void createDensityConstrainedSeedList(int numberOfSeeds, bool append);
 
+    // Create a list of seeds spread in a grid pattern on the region
+    void createGridSeedList(QSize numberOfSeeds, bool append);
+
     // Returns wether the point is too close from one of the existing seeds
     bool pointRespectSeedSeparationDistance(QPointF point, float separationDistance);
 

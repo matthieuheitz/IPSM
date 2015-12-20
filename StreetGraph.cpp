@@ -61,6 +61,25 @@ void StreetGraph::createDensityConstrainedSeedList(int numberOfSeeds, bool appen
     }
 }
 
+void StreetGraph::createGridSeedList(QSize numberOfSeeds, bool append)
+{
+    if(!append)
+    {
+        mSeeds.clear();
+    }
+    float dv = mRegionSize.height()/(float)numberOfSeeds.height();
+    float du = mRegionSize.width()/(float)numberOfSeeds.width();
+    QPointF origin(du/2.0f, dv/2.0f);
+    for(int i=0 ; i<numberOfSeeds.height() ; i++)
+    {
+        for(int j=0 ; j<numberOfSeeds.width() ; j++)
+        {
+            QPointF position = origin + QPointF(j*dv, i*du);
+            mSeeds.push_back(position);
+        }
+    }
+}
+
 bool StreetGraph::pointRespectSeedSeparationDistance(QPointF point, float separationDistance)
 {
     for(int i=0 ; i < mSeeds.size() ; i++)
