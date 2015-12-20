@@ -43,7 +43,7 @@ void StreetGraph::createDensityConstrainedSeedList(int numberOfSeeds, bool appen
     for(int i=0 ; i < numberOfSeeds ; i++)
     {
         int counter = 0;
-        bool pointIsValid;
+        bool pointIsValid = false;
         QPointF seed;
         while(!pointIsValid && counter < 10)
         {
