@@ -88,6 +88,8 @@ public slots:
 
     // Generates a grid tensor field with default parameters
     void generateGridTensorField();
+    // Generates a tensor field from a heightmap
+    void generateHeightmapTensorField();
     // Generates a multi-rotation tensor field (linear variation)
     void generateMultiRotationTensorField();
     // Generates a radial tensor field with default parameters

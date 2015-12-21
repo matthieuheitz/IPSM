@@ -5,6 +5,7 @@
 
 #include <QPainter>
 #include <QPen>
+#include <QFileDialog>
 
 
 TensorField::TensorField(QSize fieldSize, QObject *parent) :
@@ -140,6 +141,15 @@ void TensorField::fillRadialBasisField(QPointF center)
 void TensorField::generateGridTensorField()
 {
     this->fillGridBasisField(M_PI/3, 1);
+
+    this->computeTensorsEigenDecomposition();
+    this->exportEigenVectorsImage(true, true);
+}
+
+void TensorField::generateHeightmapTensorField()
+{
+    QString filename = QFileDialog::getOpenFileName(0, QObject::tr("Open Image"));
+    this->fillHeightBasisField(filename);
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
