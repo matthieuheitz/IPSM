@@ -134,7 +134,6 @@ void TensorField::fillRadialBasisField(QPointF center)
 
 void TensorField::generateTensorField()
 {
-    qDebug()<<"Generate Tensor Field";
 //    this->fillGridBasisField(M_PI/3, 1);
 //    this->fillRotatingField();
     this->fillHeightBasisField("../heightmap.png");
@@ -219,7 +218,7 @@ int TensorField::computeTensorsEigenDecomposition()
 {
     if(!mFieldIsFilled)
     {
-        qCritical()<<"Fill the tensor field before computing the eigen vectors";
+        qCritical()<<"computeTensorsEigenDecomposition(): Fill the tensor field before computing the eigen vectors";
         return -1;
     }
     // Initialize the vectors and values internal containers if they aren't already
@@ -269,7 +268,7 @@ QVector2D TensorField::getEigenValues(int i, int j)
 {
     if(!mEigenIsComputed)
     {
-        qCritical()<<"Unable to get the eigen values."
+        qCritical()<<"getEigenValues(): Unable to get the eigen values."
                    <<"First compute tensors Eigen decomposition";
         return QVector2D();
     }
@@ -318,7 +317,7 @@ QVector4D getTensorEigenVectors(QVector4D tensor)
 {
     if(!isSymetricalAndTraceless(tensor))
     {
-        qCritical()<<"The tensor must be traceless and symetrical";
+        qCritical()<<"getTensorEigenVectors(): The tensor must be traceless and symetrical";
         return QVector4D();
     }
     Eigen::Matrix2f m(2,2);

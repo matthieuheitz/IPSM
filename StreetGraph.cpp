@@ -10,8 +10,6 @@ StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *fiel
 {
     mRegionSize.rwidth() = (topRight-bottomLeft).x();
     mRegionSize.rheight() = (topRight-bottomLeft).y();
-    qDebug()<<"Region size = "<<mRegionSize.width()<<", "
-             <<mRegionSize.height();
     mLastNodeID = 0;
     mLastRoadID = 0;
 }
@@ -41,7 +39,7 @@ void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
     }
     if(mTensorField == NULL)
     {
-        qCritical()<<"ERROR: Tensor field is empty";
+        qCritical()<<"computeMajorHyperstreamlines(): Tensor field is empty";
         return;
     }
     // Generate the seeds
