@@ -141,7 +141,7 @@ void TensorField::generateTensorField()
 {
 //    this->fillGridBasisField(M_PI/3, 1);
 //    this->fillRotatingField();
-    this->fillHeightBasisField("../heightmap.png");
+    this->fillHeightBasisField("../IPSM/heightmap.png");
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
