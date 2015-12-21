@@ -60,7 +60,7 @@ public:
     void computeStreetGraph(bool clearStorage);
 
     // Draw an image with major hyperstreamlines
-    QPixmap drawStreetGraph(bool showSeeds);
+    QPixmap drawStreetGraph(bool showNodes, bool showSeeds);
 
     // Clear the stored street graph (Nodes, Roads)
     // Warning: Doesn't clear the seed list

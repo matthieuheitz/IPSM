@@ -244,10 +244,11 @@ void StreetGraph::generateStreetGraph()
     // Compute the street graph
     computeStreetGraph(true);
 //    computeMajorHyperstreamlines(true);
-    drawStreetGraph(false);
+
+    drawStreetGraph(true, false);
 }
 
-QPixmap StreetGraph::drawStreetGraph(bool showSeeds)
+QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
 {
     // Draw it in an image
     QSize imageSize(512,512);
@@ -259,6 +260,8 @@ QPixmap StreetGraph::drawStreetGraph(bool showSeeds)
     penRoad.setWidth(2);
     QPen penNode(Qt::red);
     penNode.setWidth(3);
+    QPen penSeed(Qt::darkGreen);
+    penSeed.setWidth(4);
 
     NodeMapIterator itn = mNodes.begin(), itn_end = mNodes.end();
     RoadMapIterator itr = mRoads.begin(), itr_end = mRoads.end();
@@ -280,13 +283,26 @@ QPixmap StreetGraph::drawStreetGraph(bool showSeeds)
             painter.drawLine(a, b);
         }
     }
-    // Draw the nodes (seeds)
-    if(showSeeds)
+    // Draw the nodes
+    if(showNodes)
     {
         for(; itn != itn_end ; itn++)
         {
             painter.setPen(penNode);
             QPointF a = itn->position;
+            a.rx() *= imageSize.width()/mRegionSize.width();
+            a.ry() *= imageSize.height()/mRegionSize.height();
+            a.ry() = imageSize.height() - a.y();
+            painter.drawPoint(a);
+        }
+    }
+    // Draw the seeds
+    if(showSeeds)
+    {
+        for(int i=0 ; i <mSeeds.size() ; i++)
+        {
+            painter.setPen(penSeed);
+            QPointF a = mSeeds[i];
             a.rx() *= imageSize.width()/mRegionSize.width();
             a.ry() *= imageSize.height()/mRegionSize.height();
             a.ry() = imageSize.height() - a.y();
