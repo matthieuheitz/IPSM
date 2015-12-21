@@ -31,7 +31,7 @@ public:
     // Get the tensor field size
     QSize getFieldSize() {return this->mFieldSize;}
     // Set the tensor field size
-    void setFieldSize(QSize fieldSize) {this->mFieldSize = fieldSize;}
+    void setFieldSize(QSize fieldSize);
 
     // Returns whether the field has been filled with non-zero values
     bool isFieldFilled();
@@ -42,14 +42,16 @@ public:
     // Don't normalize the vector as this function
     // integrates the vector's norm in the tensor
     void fillGridBasisField(QVector2D direction);
+    // Generate a grid basis function from an angle and an amplitude.
+    // There is no direction, so theta and theta + pi give the same result
+    void fillGridBasisField(float theta, float l);
+    // Generate a heightmap basis function from a filename
+    void fillHeightBasisField(QString filename);
     // Generate a radial basis field
     // The center coordinates must be in [0,1], considering that
     // The bottom left corner of the image is (0,0) and bottom right
     // corner is (1,0)
     void fillRadialBasisField(QPointF center);
-    // Generate a grid basis function from an angle and an amplitude.
-    // There is no direction, so theta and theta + pi give the same result
-    void fillGridBasisField(float theta, float l);
     // Test function to check the different angles
     void fillRotatingField();
 

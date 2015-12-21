@@ -28,6 +28,17 @@ void TensorField::setTensor(int i, int j, QVector4D tensor)
     mData[i][j] = tensor;
 }
 
+void TensorField::setFieldSize(QSize fieldSize)
+{
+    mFieldSize = fieldSize;
+    mData.resize(fieldSize.height());
+    for(int i=0 ; i < fieldSize.height() ; i++)
+    {
+        mData[i].resize(fieldSize.width());
+    }
+    mFieldIsFilled = false;
+}
+
 void TensorField::fillGridBasisField(float theta, float l)
 {
     for(int i=0; i<mFieldSize.height() ; i++)
@@ -66,8 +77,38 @@ void TensorField::fillRotatingField()
 
 void TensorField::fillGridBasisField(QVector2D direction)
 {
-    float theta = atan2(direction.y(),direction.x());
+    float theta = std::atan2(direction.y(),direction.x());
     this->fillGridBasisField(theta, direction.length());
+}
+
+void TensorField::fillHeightBasisField(QString filename)
+{
+    QImage mHeightMap = QImage(filename);
+    this->setFieldSize(mHeightMap.size());
+    QColor currentPixel, nextPixelI, nextPixelJ;
+    QVector2D grad;
+    float theta, r;
+    for(int i=0; i<mFieldSize.height()-1 ; i++)
+    {
+        for(int j=0; j<mFieldSize.width()-1 ; j++)
+        {
+            QVector4D tensor;
+            currentPixel = mHeightMap.pixel(i,j);
+            nextPixelI = mHeightMap.pixel(i+1,j);
+            nextPixelJ = mHeightMap.pixel(i,j+1);
+            grad.setX(currentPixel.blue()-nextPixelJ.blue());
+            grad.setY(currentPixel.blue()-nextPixelI.blue());
+            theta = std::atan2(grad.y(),grad.x()) + M_PI/2.0;
+            r = std::sqrt(std::pow(grad.y(),2.0) + std::pow(grad.x(),2.0));
+            tensor.setX(cos(2.0*theta));
+            tensor.setY(sin(2.0*theta));
+            tensor.setZ(sin(2.0*theta));
+            tensor.setW(-cos(2.0*theta));
+            tensor *= r;
+            mData[i][j] = tensor;
+        }
+    }
+    mFieldIsFilled = true;
 }
 
 void TensorField::fillRadialBasisField(QPointF center)
@@ -95,7 +136,8 @@ void TensorField::generateTensorField()
 {
     qDebug()<<"Generate Tensor Field";
 //    this->fillGridBasisField(M_PI/3, 1);
-    this->fillRotatingField();
+//    this->fillRotatingField();
+    this->fillHeightBasisField("../heightmap.png");
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
@@ -128,17 +170,21 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
     float du = imageSize/(float)mFieldSize.width();
     QVector2D origin(du/2.0f, dv/2.0f);
 
-    for(int i=0; i<mFieldSize.height() ; i++)
+    int numberOfTensorsToDisplay = 32;
+    int scaleI = mFieldSize.height()/numberOfTensorsToDisplay;
+    int scaleJ = mFieldSize.width()/numberOfTensorsToDisplay;
+
+    for(int i=0; i<mFieldSize.height() ; i=i+scaleI)
     {
-        for(int j=0; j<mFieldSize.width() ; j++)
+        for(int j=0; j<mFieldSize.width() ; j=j+scaleJ)
         {
             if(drawVector1)
             {
                 painter.setPen(pen1);
                 QVector2D base = origin + QVector2D(j*dv, i*du);
                 QVector2D eigenVector = getTensorMajorEigenVector(mData[i][j]);
-                eigenVector.setX(eigenVector.x()*du/2.0f);
-                eigenVector.setY(eigenVector.y()*dv/2.0f);
+                eigenVector.setX(eigenVector.x()*du/2.0f*scaleI*0.8);
+                eigenVector.setY(eigenVector.y()*dv/2.0f*scaleJ*0.8);
                 QVector2D tip = base + eigenVector;
                 base -= eigenVector;
                 roundVector2D(base);
@@ -152,8 +198,8 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
                 painter.setPen(pen2);
                 QVector2D base = origin + QVector2D(j*dv, i*du);
                 QVector2D eigenVector = getTensorMinorEigenVector(mData[i][j]);
-                eigenVector.setX(eigenVector.x()*du/2.0f);
-                eigenVector.setY(eigenVector.y()*dv/2.0f);
+                eigenVector.setX(eigenVector.x()*du/2.0f*scaleI*0.8);
+                eigenVector.setY(eigenVector.y()*dv/2.0f*scaleJ*0.8);
                 QVector2D tip = base + eigenVector;
                 base -= eigenVector;
                 roundVector2D(base);
