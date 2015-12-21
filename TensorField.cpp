@@ -109,7 +109,6 @@ void TensorField::fillHeightBasisField(QString filename)
         }
     }
     mFieldIsFilled = true;
-
 }
 
 void TensorField::fillRadialBasisField(QPointF center)
@@ -171,9 +170,9 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
     float du = imageSize/(float)mFieldSize.width();
     QVector2D origin(du/2.0f, dv/2.0f);
 
-    int scaleI = mFieldSize.height()/64;
-    int scaleJ = mFieldSize.width()/64;
-
+    int numberOfTensorsToDisplay = 32;
+    int scaleI = mFieldSize.height()/numberOfTensorsToDisplay;
+    int scaleJ = mFieldSize.width()/numberOfTensorsToDisplay;
 
     for(int i=0; i<mFieldSize.height() ; i=i+scaleI)
     {
