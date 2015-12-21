@@ -31,6 +31,65 @@ void StreetGraph::createRandomSeedList(int numberOfSeeds, bool append)
     }
 }
 
+void StreetGraph::createDensityConstrainedSeedList(int numberOfSeeds, bool append)
+{
+    if(!append)
+    {
+        mSeeds.clear();
+    }
+    qsrand(QDateTime::currentDateTime().toTime_t());
+    for(int i=0 ; i < numberOfSeeds ; i++)
+    {
+        int counter = 0;
+        bool pointIsValid = false;
+        QPointF seed;
+        while(!pointIsValid && counter < 10)
+        {
+            float randX = qrand()/(float)RAND_MAX;
+            float randY = qrand()/(float)RAND_MAX;
+            seed = QPointF(mBottomLeft.x() + randX*mRegionSize.width(),
+                         mBottomLeft.y() + randY*mRegionSize.height());
+            pointIsValid = pointRespectSeedSeparationDistance(seed,mDistSeparation);
+            counter++;
+        }
+        if(pointIsValid)
+        {
+            mSeeds.push_back(seed);
+        }
+    }
+}
+
+void StreetGraph::createGridSeedList(QSize numberOfSeeds, bool append)
+{
+    if(!append)
+    {
+        mSeeds.clear();
+    }
+    float dv = mRegionSize.height()/(float)numberOfSeeds.height();
+    float du = mRegionSize.width()/(float)numberOfSeeds.width();
+    QPointF origin(du/2.0f, dv/2.0f);
+    for(int i=0 ; i<numberOfSeeds.height() ; i++)
+    {
+        for(int j=0 ; j<numberOfSeeds.width() ; j++)
+        {
+            QPointF position = origin + QPointF(j*dv, i*du);
+            mSeeds.push_back(position);
+        }
+    }
+}
+
+bool StreetGraph::pointRespectSeedSeparationDistance(QPointF point, float separationDistance)
+{
+    for(int i=0 ; i < mSeeds.size() ; i++)
+    {
+        if(QVector2D(mSeeds[i]-point).length() < separationDistance)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
 {
     if(clearStorage)
@@ -93,14 +152,101 @@ void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
     }
 }
 
+void StreetGraph::computeStreetGraph(bool clearStorage)
+{
+    if(clearStorage)
+    {
+        clearStoredStreetGraph();
+    }
+    if(mTensorField == NULL)
+    {
+        qCritical()<<"ERROR: Tensor field is empty";
+        return;
+    }
+    // Generate the seeds
+    createRandomSeedList(50, false);
+    float step = mRegionSize.height()/100.0f; // Should be function of curvature
+    QSize fieldSize = mTensorField->getFieldSize();
+    bool majorGrowth = true;
+    while(!mSeeds.isEmpty())
+    {
+        // Create a node
+        // Grow a road starting from this node using the tensor eigen vector
+        // until one of the condition is reached
+        Node& node1 = mNodes[++mLastNodeID];
+        Road& road = mRoads[++mLastRoadID];
+
+        node1.position = mSeeds.last();
+        road.type = Principal;
+
+        node1.connectedRoadIDs.push_back(mLastRoadID);
+        road.nodeID1 = mLastNodeID;
+
+        // The road contains also the position of its extreme nodes
+        // Start from the node position
+        QPointF currentPosition = node1.position;
+        // Holds wether road stopped because it was too long or not
+        bool tooLong;
+        bool stopGrowth = false;
+        while(!stopGrowth)
+        {
+            QVector2D currentDirection;
+            if(road.segments.size() != 0)
+            {
+                currentDirection = QVector2D(currentPosition-road.segments.last());
+            }
+            road.segments.push_back(currentPosition);
+            // TODO: Make a function for that
+            int i = round((currentPosition.y()-mBottomLeft.y())/mRegionSize.height()*
+                        (fieldSize.height()-1));
+            int j = round((currentPosition.x()-mBottomLeft.x())/mRegionSize.width()*
+                        (fieldSize.width()-1));
+            QVector2D majorDirection;
+            if(majorGrowth)
+            {
+                majorDirection = mTensorField->getMajorEigenVector(i,j);
+                if(QVector2D::dotProduct(majorDirection,currentDirection) < 0)
+                {
+                    majorDirection *= -1;
+                }
+            }
+            else
+            {
+                majorDirection = mTensorField->getMinorEigenVector(i,j);
+            }
+            QPointF nextPosition = currentPosition + (step*majorDirection).toPointF();
+            tooLong = exceedingLengthStoppingCondition(road.segments);
+            stopGrowth = boundaryStoppingCondition(nextPosition)
+                      || degeneratePointStoppingCondition(i,j)
+                      || loopStoppingCondition(nextPosition,road.segments)
+                      || tooLong;
+            currentPosition = nextPosition;
+        }
+        majorGrowth = !majorGrowth;
+        std::cout<<"Seed size: before = "<<mSeeds.size();
+        mSeeds.pop_back();
+        std::cout<<" after = "<<mSeeds.size()<<std::endl;
+        if(tooLong)
+        {
+            // TODO: Add only if it's not too close from another seed
+            if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation))
+            {
+                mSeeds.push_back(road.segments.last());
+            }
+        }
+    }
+}
+
 void StreetGraph::generateStreetGraph()
 {
     // Compute the street graph
-    computeMajorHyperstreamlines(true);
-    drawStreetGraph(false);
+    computeStreetGraph(true);
+//    computeMajorHyperstreamlines(true);
+
+    drawStreetGraph(true, false);
 }
 
-QPixmap StreetGraph::drawStreetGraph(bool showSeeds)
+QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
 {
     // Draw it in an image
     QSize imageSize(512,512);
@@ -118,6 +264,8 @@ QPixmap StreetGraph::drawStreetGraph(bool showSeeds)
     penRoad.setWidth(2);
     QPen penNode(Qt::red);
     penNode.setWidth(3);
+    QPen penSeed(Qt::darkGreen);
+    penSeed.setWidth(4);
 
     NodeMapIterator itn = mNodes.begin(), itn_end = mNodes.end();
     RoadMapIterator itr = mRoads.begin(), itr_end = mRoads.end();
@@ -139,13 +287,26 @@ QPixmap StreetGraph::drawStreetGraph(bool showSeeds)
             painter.drawLine(a, b);
         }
     }
-    // Draw the nodes (seeds)
-    if(showSeeds)
+    // Draw the nodes
+    if(showNodes)
     {
         for(; itn != itn_end ; itn++)
         {
             painter.setPen(penNode);
             QPointF a = itn->position;
+            a.rx() *= imageSize.width()/mRegionSize.width();
+            a.ry() *= imageSize.height()/mRegionSize.height();
+            a.ry() = imageSize.height() - a.y();
+            painter.drawPoint(a);
+        }
+    }
+    // Draw the seeds
+    if(showSeeds)
+    {
+        for(int i=0 ; i <mSeeds.size() ; i++)
+        {
+            painter.setPen(penSeed);
+            QPointF a = mSeeds[i];
             a.rx() *= imageSize.width()/mRegionSize.width();
             a.ry() *= imageSize.height()/mRegionSize.height();
             a.ry() = imageSize.height() - a.y();
@@ -178,10 +339,14 @@ bool StreetGraph::boundaryStoppingCondition(QPointF nextPosition)
 
 bool StreetGraph::degeneratePointStoppingCondition(int i, int j)
 {
-    return isDegenerate(mTensorField->getTensor(i,j));
+    if(isDegenerate(mTensorField->getTensor(i,j)))
+    {
+        return true;
+    }
+    return false;
 }
 
-bool StreetGraph::loopStoppingCondition(QPointF nextPosition, QVector<QPointF>& segments)
+bool StreetGraph::loopStoppingCondition(QPointF nextPosition, const QVector<QPointF>& segments)
 {
     // TODO : Look for a better way to compare
     // It needs a larger span (maybe function of dSeperation)
@@ -193,7 +358,7 @@ bool StreetGraph::loopStoppingCondition(QPointF nextPosition, QVector<QPointF>& 
     return false;
 }
 
-bool StreetGraph::exceedingLengthStoppingCondition(QVector<QPointF>& segments)
+bool StreetGraph::exceedingLengthStoppingCondition(const QVector<QPointF>& segments)
 {
     if(computePathLength(segments) > mDistSeparation)
     {

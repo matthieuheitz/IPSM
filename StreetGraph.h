@@ -44,11 +44,23 @@ public:
     // Create a random seed list
     void createRandomSeedList(int numberOfSeeds, bool append);
 
+    // Create a random seed list that respect a certain density
+    void createDensityConstrainedSeedList(int numberOfSeeds, bool append);
+
+    // Create a list of seeds spread in a grid pattern on the region
+    void createGridSeedList(QSize numberOfSeeds, bool append);
+
+    // Returns wether the point is too close from one of the existing seeds
+    bool pointRespectSeedSeparationDistance(QPointF point, float separationDistance);
+
     // Compute the major hyperstreamlines from the stored tensor field
     void computeMajorHyperstreamlines(bool clearStorage);
 
+    // Compute the street graph from the stored tensor field
+    void computeStreetGraph(bool clearStorage);
+
     // Draw an image with major hyperstreamlines
-    QPixmap drawStreetGraph(bool showSeeds);
+    QPixmap drawStreetGraph(bool showNodes, bool showSeeds);
 
     // Clear the stored street graph (Nodes, Roads)
     // Warning: Doesn't clear the seed list
@@ -74,9 +86,9 @@ private:
     // 2nd condition: Reaching a degenerate point
     bool degeneratePointStoppingCondition(int i, int j);
     // 3rd condition: Returning to origin
-    bool loopStoppingCondition(QPointF nextPosition, QVector<QPointF> &segments);
+    bool loopStoppingCondition(QPointF nextPosition, const QVector<QPointF> &segments);
     // 4th condition: Exceeding user-defined max length
-    bool exceedingLengthStoppingCondition(QVector<QPointF>& segments);
+    bool exceedingLengthStoppingCondition(const QVector<QPointF>& segments);
     // 5th condition: Too close to other hyperstreamline
     bool exceedingDensityStoppingCondition();
 

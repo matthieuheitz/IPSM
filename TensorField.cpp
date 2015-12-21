@@ -137,11 +137,25 @@ void TensorField::fillRadialBasisField(QPointF center)
     mFieldIsFilled = true;
 }
 
-void TensorField::generateTensorField()
+void TensorField::generateGridTensorField()
 {
-//    this->fillGridBasisField(M_PI/3, 1);
-//    this->fillRotatingField();
-    this->fillHeightBasisField("../IPSM/heightmap.png");
+    this->fillGridBasisField(M_PI/3, 1);
+
+    this->computeTensorsEigenDecomposition();
+    this->exportEigenVectorsImage(true, true);
+}
+
+void TensorField::generateMultiRotationTensorField()
+{
+    this->fillRotatingField();
+
+    this->computeTensorsEigenDecomposition();
+    this->exportEigenVectorsImage(true, true);
+}
+
+void TensorField::generateRadialTensorField()
+{
+    this->fillRadialBasisField(QPointF(0.5,0.5));
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
