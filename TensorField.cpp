@@ -84,6 +84,11 @@ void TensorField::fillGridBasisField(QVector2D direction)
 void TensorField::fillHeightBasisField(QString filename)
 {
     QImage mHeightMap = QImage(filename);
+    if(mHeightMap.isNull())
+    {
+        qCritical()<<"fillHeightBasisField(): File "<<filename<<" not found";
+        return;
+    }
     this->setFieldSize(mHeightMap.size());
     QColor currentPixel, nextPixelI, nextPixelJ;
     QVector2D grad;
@@ -160,6 +165,12 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
     int imageSize = 512;
     QPixmap pixmap(imageSize,imageSize);
     pixmap.fill();
+
+    if(!mFieldIsFilled)
+    {
+        qCritical()<<"exportEigenVectorsImage(): Tensor field is empty";
+        return pixmap;
+    }
 
     QPainter painter(&pixmap);
     QPen pen1(color1);

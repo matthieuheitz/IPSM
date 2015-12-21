@@ -37,7 +37,7 @@ void StreetGraph::computeMajorHyperstreamlines(bool clearStorage)
     {
         clearStoredStreetGraph();
     }
-    if(mTensorField == NULL)
+    if(mTensorField == NULL || !(mTensorField->isFieldFilled()))
     {
         qCritical()<<"computeMajorHyperstreamlines(): Tensor field is empty";
         return;
@@ -106,6 +106,12 @@ QPixmap StreetGraph::drawStreetGraph(bool showSeeds)
     QSize imageSize(512,512);
     QPixmap pixmap(imageSize);
     pixmap.fill();
+
+    if(!(mTensorField->isFieldFilled()))
+    {
+        qCritical()<<"drawStreetGraph(): Tensor field is empty";
+        return pixmap;
+    }
 
     QPainter painter(&pixmap);
     QPen penRoad(Qt::blue);

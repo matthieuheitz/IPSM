@@ -34,7 +34,7 @@ public:
     void setFieldSize(QSize fieldSize);
 
     // Returns whether the field has been filled with non-zero values
-    bool isFieldFilled();
+    bool isFieldFilled() {return mFieldIsFilled;}
 
     /** General Use Functions */
 
