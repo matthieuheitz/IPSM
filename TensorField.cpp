@@ -357,7 +357,7 @@ QVector4D getTensorEigenVectors(QVector4D tensor)
     }
     if(isDegenerate(tensor))
     {
-        return QVector4D(1,0,0,1);
+        return QVector4D(0,0,0,0);
     }
     Eigen::Matrix2f m(2,2);
     m(0,0) = tensor.x();
