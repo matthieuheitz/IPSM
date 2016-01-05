@@ -104,13 +104,22 @@ void TensorField::fillHeightBasisField(QString filename)
             nextPixelJ = mHeightMap.pixel(i,j+1);
             grad.setX(currentPixel.blue()-nextPixelJ.blue());
             grad.setY(currentPixel.blue()-nextPixelI.blue());
-            theta = std::atan2(grad.y(),grad.x()) + M_PI/2.0;
-            r = std::sqrt(std::pow(grad.y(),2.0) + std::pow(grad.x(),2.0));
-            tensor.setX(cos(2.0*theta));
-            tensor.setY(sin(2.0*theta));
-            tensor.setZ(sin(2.0*theta));
-            tensor.setW(-cos(2.0*theta));
-            tensor *= r;
+            // If gradient is null, set tensor to default instead
+            // of degenerate
+            if(isFuzzyNull(grad.x()) && isFuzzyNull(grad.y()))
+            {
+                tensor = QVector4D(1,0,0,-1);
+            }
+            else
+            {
+                theta = std::atan2(grad.y(),grad.x()) + M_PI/2.0;
+                r = std::sqrt(std::pow(grad.y(),2.0) + std::pow(grad.x(),2.0));
+                tensor.setX(cos(2.0*theta));
+                tensor.setY(sin(2.0*theta));
+                tensor.setZ(sin(2.0*theta));
+                tensor.setW(-cos(2.0*theta));
+                tensor *= r;
+            }
             mData[i][j] = tensor;
         }
     }
