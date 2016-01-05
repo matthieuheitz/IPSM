@@ -17,6 +17,8 @@ TensorField::TensorField(QSize fieldSize, QObject *parent) :
         mData[i].resize(fieldSize.width());
     }
     mFieldIsFilled = false;
+    mEigenIsComputed = false;
+    mWaterMapIsLoaded = false;
 }
 
 QVector4D TensorField::getTensor(int i, int j)
@@ -38,6 +40,33 @@ void TensorField::setFieldSize(QSize fieldSize)
         mData[i].resize(fieldSize.width());
     }
     mFieldIsFilled = false;
+}
+
+void TensorField::applyWaterMap(QString filename)
+{
+    QImage waterMap = QImage(filename);
+    if(waterMap.isNull())
+    {
+        qCritical()<<"applyWaterMap(): File "<<filename<<" not found";
+        return;
+    }
+    if(waterMap.size() != mFieldSize)
+    {
+        qCritical()<<"applyWaterMap(): Watermap must be of same size as the tensor field";
+        return;
+    }
+    for(int i=0; i<waterMap.height() ; i++)
+    {
+        for(int j=0; j<waterMap.width() ; j++)
+        {
+            if(qRed(waterMap.pixel(i,j)) != qBlue(waterMap.pixel(i,j)))
+            {
+                mData[i][j] = QVector4D(0,0,0,0);
+            }
+        }
+    }
+    mWatermapFilename = filename;
+    mWaterMapIsLoaded = true;
 }
 
 void TensorField::fillGridBasisField(float theta, float l)
@@ -147,6 +176,24 @@ void TensorField::fillRadialBasisField(QPointF center)
     mFieldIsFilled = true;
 }
 
+void TensorField::actionAddWatermap()
+{
+    if(!mFieldIsFilled)
+    {
+        qCritical()<<"actionApplyWatermap(): Tensor field is null. Initialize it first";
+        return;
+    }
+    QString filename = QFileDialog::getOpenFileName(0, QString("Open Image"));
+    if(filename.isEmpty())
+    {
+        return;
+    }
+    this->applyWaterMap(filename);
+
+    this->computeTensorsEigenDecomposition();
+    this->exportEigenVectorsImage(true, true);
+}
+
 void TensorField::generateGridTensorField()
 {
     this->fillGridBasisField(M_PI/3, 1);
@@ -158,6 +205,10 @@ void TensorField::generateGridTensorField()
 void TensorField::generateHeightmapTensorField()
 {
     QString filename = QFileDialog::getOpenFileName(0, QString("Open Image"));
+    if(filename.isEmpty())
+    {
+        return;
+    }
     this->fillHeightBasisField(filename);
 
     this->computeTensorsEigenDecomposition();
