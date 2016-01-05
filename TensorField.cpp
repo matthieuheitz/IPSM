@@ -148,7 +148,7 @@ void TensorField::generateGridTensorField()
 
 void TensorField::generateHeightmapTensorField()
 {
-    QString filename = QFileDialog::getOpenFileName(0, QObject::tr("Open Image"));
+    QString filename = QFileDialog::getOpenFileName(0, QString("Open Image"));
     this->fillHeightBasisField(filename);
 
     this->computeTensorsEigenDecomposition();
@@ -355,6 +355,10 @@ QVector4D getTensorEigenVectors(QVector4D tensor)
         qCritical()<<"getTensorEigenVectors(): The tensor must be traceless and symetrical";
         return QVector4D();
     }
+    if(isDegenerate(tensor))
+    {
+        return QVector4D(1,0,0,1);
+    }
     Eigen::Matrix2f m(2,2);
     m(0,0) = tensor.x();
     m(1,0) = tensor.y();
@@ -377,6 +381,10 @@ QVector4D getTensorEigenVectors(QVector4D tensor)
 
 QVector2D getTensorEigenValues(QVector4D tensor)
 {
+    if(isDegenerate(tensor))
+    {
+        return QVector2D(0,0);
+    }
     Eigen::Matrix2f m(2,2);
     m(0,0) = tensor.x();
     m(1,0) = tensor.y();
