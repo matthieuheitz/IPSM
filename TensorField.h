@@ -36,8 +36,17 @@ public:
     // Returns whether the field has been filled with non-zero values
     bool isFieldFilled() {return mFieldIsFilled;}
 
+    // Returns whether the field has been filled with non-zero values
+    bool isWatermapLoaded() {return mWaterMapIsLoaded;}
+
+    // Returns whether the field has been filled with non-zero values
+    QString getWatermapFilename() {return mWatermapFilename;}
+
     /** General Use Functions */
 
+    // Changes the stored tensor field and put tensor to null
+    // in areas where there is water
+    void applyWaterMap(QString filename);
     // Generate a grid basis field from a 2D vector
     // Don't normalize the vector as this function
     // integrates the vector's norm in the tensor
@@ -88,6 +97,9 @@ signals:
 
 public slots:
 
+    // Get a filename for watermap, store it for future display
+    // and call the function to apply the watermap
+    void actionAddWatermap();
     // Generates a grid tensor field with default parameters
     void generateGridTensorField();
     // Generates a tensor field from a heightmap
@@ -120,6 +132,10 @@ private:
     bool mFieldIsFilled;
     // Holds wether the eigen vectors and values has been computed
     bool mEigenIsComputed;
+    // Holds wether a watermap has been loaded
+    bool mWaterMapIsLoaded;
+    // Filename of the watermap
+    QString mWatermapFilename;
     // Field size
     QSize mFieldSize;
 };
