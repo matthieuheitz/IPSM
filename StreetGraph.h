@@ -58,9 +58,15 @@ public:
 
     // Compute the street graph from the stored tensor field
     void computeStreetGraph(bool clearStorage);
+    void computeStreetGraph2(bool clearStorage);
+    // 1 : doesn't check for segments being too long. Doesn't replant seeds
+    // 2 : Checks for segments being too long. Replants seeds
 
     // Draw an image with major hyperstreamlines
     QPixmap drawStreetGraph(bool showNodes, bool showSeeds);
+
+    // Draw the road network using the painter
+    void drawRoads(QPainter& painter, QSize imageSize);
 
     // Clear the stored street graph (Nodes, Roads)
     // Warning: Doesn't clear the seed list
@@ -112,6 +118,8 @@ private:
     int mLastRoadID;
     // Distance for road density
     float mDistSeparation;
+    // Watermap
+    QImage mWatermap;
 
 };
 

@@ -17,6 +17,8 @@ TensorField::TensorField(QSize fieldSize, QObject *parent) :
         mData[i].resize(fieldSize.width());
     }
     mFieldIsFilled = false;
+    mEigenIsComputed = false;
+    mWaterMapIsLoaded = false;
 }
 
 QVector4D TensorField::getTensor(int i, int j)
@@ -38,6 +40,33 @@ void TensorField::setFieldSize(QSize fieldSize)
         mData[i].resize(fieldSize.width());
     }
     mFieldIsFilled = false;
+}
+
+void TensorField::applyWaterMap(QString filename)
+{
+    QImage waterMap = QImage(filename);
+    if(waterMap.isNull())
+    {
+        qCritical()<<"applyWaterMap(): File "<<filename<<" not found";
+        return;
+    }
+    if(waterMap.size() != mFieldSize)
+    {
+        qCritical()<<"applyWaterMap(): Watermap must be of same size as the tensor field";
+        return;
+    }
+    for(int i=0; i<waterMap.height() ; i++)
+    {
+        for(int j=0; j<waterMap.width() ; j++)
+        {
+            if(qRed(waterMap.pixel(j,i)) != qBlue(waterMap.pixel(j,i)))
+            {
+                mData[mFieldSize.height()-1-i][j] = QVector4D(0,0,0,0);
+            }
+        }
+    }
+    mWatermapFilename = filename;
+    mWaterMapIsLoaded = true;
 }
 
 void TensorField::fillGridBasisField(float theta, float l)
@@ -91,27 +120,41 @@ void TensorField::fillHeightBasisField(QString filename)
         return;
     }
     this->setFieldSize(mHeightMap.size());
-    QColor currentPixel, nextPixelI, nextPixelJ;
+    QRgb currentPixel, nextPixelHoriz, nextPixelVert;
     QVector2D grad;
     float theta, r;
+    // Origin is top-left in the image
+    // Origin is bottom-left in the tensor matrix
+    // We have to swap the vertical axis
     for(int i=0; i<mFieldSize.height()-1 ; i++)
     {
         for(int j=0; j<mFieldSize.width()-1 ; j++)
         {
             QVector4D tensor;
-            currentPixel = mHeightMap.pixel(i,j);
-            nextPixelI = mHeightMap.pixel(i+1,j);
-            nextPixelJ = mHeightMap.pixel(i,j+1);
-            grad.setX(currentPixel.blue()-nextPixelJ.blue());
-            grad.setY(currentPixel.blue()-nextPixelI.blue());
-            theta = std::atan2(grad.y(),grad.x()) + M_PI/2.0;
-            r = std::sqrt(std::pow(grad.y(),2.0) + std::pow(grad.x(),2.0));
-            tensor.setX(cos(2.0*theta));
-            tensor.setY(sin(2.0*theta));
-            tensor.setZ(sin(2.0*theta));
-            tensor.setW(-cos(2.0*theta));
-            tensor *= r;
-            mData[i][j] = tensor;
+            currentPixel = mHeightMap.pixel(j,i);
+            nextPixelHoriz = mHeightMap.pixel(j+1,i);
+            nextPixelVert = mHeightMap.pixel(j,i+1);
+            // If gradient is null, set tensor to default instead
+            // of degenerate
+            if(nextPixelHoriz == currentPixel && nextPixelVert == currentPixel)
+            {
+                mData[mFieldSize.width()-1-i][j] = QVector4D(1,0,0,-1);
+            }
+            else
+            {
+                grad.setX(qBlue(currentPixel)-qBlue(nextPixelHoriz));
+                grad.setY(qBlue(currentPixel)-qBlue(nextPixelVert));
+                // Invert y
+                theta = std::atan2(-grad.y(), grad.x()) + M_PI/2.0;
+                r = std::sqrt(std::pow(grad.y(),2.0) + std::pow(grad.x(),2.0));
+                tensor.setX(cos(2.0*theta));
+                tensor.setY(sin(2.0*theta));
+                tensor.setZ(sin(2.0*theta));
+                tensor.setW(-cos(2.0*theta));
+                tensor *= r;
+
+                mData[mFieldSize.height()-1-i][j] = tensor;
+            }
         }
     }
     mFieldIsFilled = true;
@@ -138,6 +181,24 @@ void TensorField::fillRadialBasisField(QPointF center)
     mFieldIsFilled = true;
 }
 
+void TensorField::actionAddWatermap()
+{
+    if(!mFieldIsFilled)
+    {
+        qCritical()<<"actionApplyWatermap(): Tensor field is null. Initialize it first";
+        return;
+    }
+    QString filename = QFileDialog::getOpenFileName(0, QString("Open Image"));
+    if(filename.isEmpty())
+    {
+        return;
+    }
+    this->applyWaterMap(filename);
+
+    this->computeTensorsEigenDecomposition();
+    this->exportEigenVectorsImage(true, true);
+}
+
 void TensorField::generateGridTensorField()
 {
     this->fillGridBasisField(M_PI/3, 1);
@@ -149,6 +210,10 @@ void TensorField::generateGridTensorField()
 void TensorField::generateHeightmapTensorField()
 {
     QString filename = QFileDialog::getOpenFileName(0, QString("Open Image"));
+    if(filename.isEmpty())
+    {
+        return;
+    }
     this->fillHeightBasisField(filename);
 
     this->computeTensorsEigenDecomposition();
@@ -357,6 +422,10 @@ QVector4D getTensorEigenVectors(QVector4D tensor)
     }
     if(isDegenerate(tensor))
     {
+        return QVector4D(0,0,0,0);
+    }
+    if(isFuzzyEqual(tensor.x(), 1) && isFuzzyEqual(tensor.y(), 0))
+    {
         return QVector4D(1,0,0,1);
     }
     Eigen::Matrix2f m(2,2);
@@ -384,6 +453,10 @@ QVector2D getTensorEigenValues(QVector4D tensor)
     if(isDegenerate(tensor))
     {
         return QVector2D(0,0);
+    }
+    if(isFuzzyEqual(tensor.x(), 1) && isFuzzyEqual(tensor.y(), 0))
+    {
+        return QVector2D(1,-1);
     }
     Eigen::Matrix2f m(2,2);
     m(0,0) = tensor.x();
