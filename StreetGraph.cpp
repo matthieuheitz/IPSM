@@ -164,11 +164,13 @@ void StreetGraph::computeStreetGraph(bool clearStorage)
         return;
     }
     // Generate the seeds
-    createRandomSeedList(50, false);
+//    createRandomSeedList(50, false);
+    createDensityConstrainedSeedList(100, false);
+//    createGridSeedList(QSize(10,10),false);
     float step = mRegionSize.height()/100.0f; // Should be function of curvature
     QSize fieldSize = mTensorField->getFieldSize();
     bool majorGrowth = true;
-    while(!mSeeds.isEmpty())
+    for(int k=0 ; k<mSeeds.size() ; k++)
     {
         // Create a node
         // Grow a road starting from this node using the tensor eigen vector
@@ -176,7 +178,7 @@ void StreetGraph::computeStreetGraph(bool clearStorage)
         Node& node1 = mNodes[++mLastNodeID];
         Road& road = mRoads[++mLastRoadID];
 
-        node1.position = mSeeds.last();
+        node1.position = mSeeds[k];
         road.type = Principal;
 
         node1.connectedRoadIDs.push_back(mLastRoadID);
@@ -188,8 +190,10 @@ void StreetGraph::computeStreetGraph(bool clearStorage)
         // Holds wether road stopped because it was too long or not
         bool tooLong;
         bool stopGrowth = false;
-        while(!stopGrowth)
+        int preventInfiniteLoop = 0;
+        while(!stopGrowth && preventInfiniteLoop < 1000)
         {
+            preventInfiniteLoop++;
             QVector2D currentDirection;
             if(road.segments.size() != 0)
             {
@@ -215,25 +219,36 @@ void StreetGraph::computeStreetGraph(bool clearStorage)
                 majorDirection *= -1;
             }
             QPointF nextPosition = currentPosition + (step*majorDirection).toPointF();
-            tooLong = exceedingLengthStoppingCondition(road.segments);
+//            tooLong = exceedingLengthStoppingCondition(road.segments);
             stopGrowth = boundaryStoppingCondition(nextPosition)
                       || degeneratePointStoppingCondition(i,j)
-                      || loopStoppingCondition(nextPosition,road.segments)
-                      || tooLong;
+                      || loopStoppingCondition(nextPosition,road.segments);
+//                      || tooLong;
             currentPosition = nextPosition;
         }
         majorGrowth = !majorGrowth;
-        std::cout<<"Seed size: before = "<<mSeeds.size();
-        mSeeds.pop_back();
-        std::cout<<" after = "<<mSeeds.size()<<std::endl;
-        if(tooLong)
-        {
-            // TODO: Add only if it's not too close from another seed
-            if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation))
-            {
-                mSeeds.push_back(road.segments.last());
-            }
-        }
+
+        // Connect Nodes and Roads
+        Node& node2 = mNodes[++mLastNodeID];
+        node1.connectedNodeIDs.push_back(mLastNodeID);
+        node2.position = road.segments.last();
+        node2.connectedNodeIDs.push_back(mLastNodeID-1);
+        node2.connectedRoadIDs.push_back(mLastRoadID);
+
+//        if(tooLong)
+//        {
+//            // Connect Nodes and Roads
+//            Node& node2 = mNodes[++mLastNodeID];
+//            node1.connectedNodeIDs.push_back(mLastNodeID);
+//            node2.position = road.segments.last();
+//            node2.connectedNodeIDs.push_back(mLastNodeID-1);
+//            node2.connectedRoadIDs.push_back(mLastRoadID);
+//            // Replant a seed only if it's not too close from another seed
+//            if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation/4.0f))
+//            {
+//                mSeeds.push_back(node2.position);
+//            }
+//        }
     }
 }
 
