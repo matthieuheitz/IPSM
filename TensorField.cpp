@@ -59,9 +59,9 @@ void TensorField::applyWaterMap(QString filename)
     {
         for(int j=0; j<waterMap.width() ; j++)
         {
-            if(qRed(waterMap.pixel(i,j)) != qBlue(waterMap.pixel(i,j)))
+            if(qRed(waterMap.pixel(j,i)) != qBlue(waterMap.pixel(j,i)))
             {
-                mData[i][j] = QVector4D(0,0,0,0);
+                mData[mFieldSize.height()-1-i][j] = QVector4D(0,0,0,0);
             }
         }
     }
@@ -120,36 +120,41 @@ void TensorField::fillHeightBasisField(QString filename)
         return;
     }
     this->setFieldSize(mHeightMap.size());
-    QColor currentPixel, nextPixelI, nextPixelJ;
+    QRgb currentPixel, nextPixelHoriz, nextPixelVert;
     QVector2D grad;
     float theta, r;
+    // Origin is top-left in the image
+    // Origin is bottom-left in the tensor matrix
+    // We have to swap the vertical axis
     for(int i=0; i<mFieldSize.height()-1 ; i++)
     {
         for(int j=0; j<mFieldSize.width()-1 ; j++)
         {
             QVector4D tensor;
-            currentPixel = mHeightMap.pixel(i,j);
-            nextPixelI = mHeightMap.pixel(i+1,j);
-            nextPixelJ = mHeightMap.pixel(i,j+1);
-            grad.setX(currentPixel.blue()-nextPixelJ.blue());
-            grad.setY(currentPixel.blue()-nextPixelI.blue());
+            currentPixel = mHeightMap.pixel(j,i);
+            nextPixelHoriz = mHeightMap.pixel(j+1,i);
+            nextPixelVert = mHeightMap.pixel(j,i+1);
             // If gradient is null, set tensor to default instead
             // of degenerate
-            if(isFuzzyNull(grad.x()) && isFuzzyNull(grad.y()))
+            if(nextPixelHoriz == currentPixel && nextPixelVert == currentPixel)
             {
-                tensor = QVector4D(1,0,0,-1);
+                mData[mFieldSize.width()-1-i][j] = QVector4D(1,0,0,-1);
             }
             else
             {
-                theta = std::atan2(grad.y(),grad.x()) + M_PI/2.0;
+                grad.setX(qBlue(currentPixel)-qBlue(nextPixelHoriz));
+                grad.setY(qBlue(currentPixel)-qBlue(nextPixelVert));
+                // Invert y
+                theta = std::atan2(-grad.y(), grad.x()) + M_PI/2.0;
                 r = std::sqrt(std::pow(grad.y(),2.0) + std::pow(grad.x(),2.0));
                 tensor.setX(cos(2.0*theta));
                 tensor.setY(sin(2.0*theta));
                 tensor.setZ(sin(2.0*theta));
                 tensor.setW(-cos(2.0*theta));
                 tensor *= r;
+
+                mData[mFieldSize.height()-1-i][j] = tensor;
             }
-            mData[i][j] = tensor;
         }
     }
     mFieldIsFilled = true;
