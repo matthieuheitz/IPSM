@@ -95,14 +95,14 @@ void TensorField::fillHeightBasisField(QString filename)
     QVector2D grad;
     float theta, r;
 
-    for(int i=0; i<mFieldSize.height()-1 ; i++)
+    for(int i=0; i<mFieldSize.width()-1 ; i++)
     {
-        for(int j=0; j<mFieldSize.width()-1 ; j++)
+        for(int j=0; j<mFieldSize.height()-1 ; j++)
         {
             QVector4D tensor;
-            currentPixel = mHeightMap.pixel(i,j);
-            nextPixelI = mHeightMap.pixel(i+1,j);
-            nextPixelJ = mHeightMap.pixel(i,j+1);
+            currentPixel = mHeightMap.pixel(j,i);
+            nextPixelI = mHeightMap.pixel(j+1,i);
+            nextPixelJ = mHeightMap.pixel(j,i+1);
             grad.setX(currentPixel.blue()-nextPixelJ.blue());
             grad.setY(currentPixel.blue()-nextPixelI.blue());
             theta = std::atan2(grad.y(),grad.x()) + M_PI/2.0;
@@ -112,7 +112,7 @@ void TensorField::fillHeightBasisField(QString filename)
             tensor.setZ(sin(2.0*theta));
             tensor.setW(-cos(2.0*theta));
             tensor *= r;
-            mData[i][j] = tensor;
+            mData[mFieldSize.width() -1 - i][j] = tensor;
         }
     }
     mFieldIsFilled = true;
@@ -134,22 +134,23 @@ void TensorField::fillHeightBasisFieldSobel(QString filename)
     mapSobelX = applySobelX(mHeightMap);
     mapSobelY = applySobelY(mHeightMap);
 
-    for(int i=0; i<mFieldSize.height()-1 ; i++)
+    for(int i=0; i<mFieldSize.width()-1 ; i++)
     {
-        for(int j=0; j<mFieldSize.width()-1 ; j++)
+        for(int j=0; j<mFieldSize.height()-1 ; j++)
         {
             QVector4D tensor;
-            pixSobelX = mapSobelX.pixel(i,j);
-            pixSobelY = mapSobelY.pixel(i,j);
+            pixSobelX = mapSobelX.pixel(j,i);
+            pixSobelY = mapSobelY.pixel(j,i);
 
-            theta = std::atan2(pixSobelY.blue(),pixSobelX.blue());
+            theta = std::atan2(abs(pixSobelY.blue()),abs(pixSobelX.blue()))+ M_PI/2.0;
             r = std::sqrt(std::pow(pixSobelY.blue(),2.0) + std::pow(pixSobelX.blue(),2.0));
+
             tensor.setX(cos(2.0*theta));
             tensor.setY(sin(2.0*theta));
             tensor.setZ(sin(2.0*theta));
             tensor.setW(-cos(2.0*theta));
             tensor *= r;
-            mData[i][j] = tensor;
+            mData[mFieldSize.width() -1 -i][j] = tensor;
         }
     }
     mFieldIsFilled = true;
@@ -246,9 +247,9 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
     int scaleI = mFieldSize.height()/numberOfTensorsToDisplay;
     int scaleJ = mFieldSize.width()/numberOfTensorsToDisplay;
 
-    for(int i=0; i<mFieldSize.height() ; i=i+scaleI)
+    for(int i=0; i<mFieldSize.width() ; i=i+scaleI)
     {
-        for(int j=0; j<mFieldSize.width() ; j=j+scaleJ)
+        for(int j=0; j<mFieldSize.height() ; j=j+scaleJ)
         {
             if(drawVector1)
             {
@@ -466,16 +467,17 @@ QImage applySobelX(QImage map)
         for (int j=1; j<size.height()-2; j++)
         {
             mii[0] = qBlue(map.pixel(i-1,j-1));
-            mii[1] = qBlue(map.pixel(i-1,j));
-            mii[2] = qBlue(map.pixel(i-1,j+1));
-            mii[3] = qBlue(map.pixel(i,j-1));
+            mii[1] = qBlue(map.pixel(i,j-1));
+            mii[2] = qBlue(map.pixel(i+1,j-1));
+            mii[3] = qBlue(map.pixel(i-1,j));
             mii[4] = qBlue(map.pixel(i,j));
-            mii[5] = qBlue(map.pixel(i,j+1));
-            mii[6] = qBlue(map.pixel(i+1,j-1));
-            mii[7] = qBlue(map.pixel(i+1,j));
+            mii[5] = qBlue(map.pixel(i+1,j));
+            mii[6] = qBlue(map.pixel(i-1,j+1));
+            mii[7] = qBlue(map.pixel(i,j+1));
             mii[8] = qBlue(map.pixel(i+1,j+1));
             QMatrix3x3 matrix(mii);
-            sobelX.setPixel(i,j,std::abs(sumMat3D(matrix,kernel)));
+
+            sobelX.setPixel(i,j,(sumMat3D(matrix,kernel)));
         }
     }
     sobelX.save("testx.png");
@@ -506,16 +508,17 @@ QImage applySobelY(QImage map)
         for (int j=1; j<size.height()-2; j++)
         {
             mii[0] = qBlue(map.pixel(i-1,j-1));
-            mii[1] = qBlue(map.pixel(i-1,j));
-            mii[2] = qBlue(map.pixel(i-1,j+1));
-            mii[3] = qBlue(map.pixel(i,j-1));
+            mii[1] = qBlue(map.pixel(i,j-1));
+            mii[2] = qBlue(map.pixel(i+1,j-1));
+            mii[3] = qBlue(map.pixel(i-1,j));
             mii[4] = qBlue(map.pixel(i,j));
-            mii[5] = qBlue(map.pixel(i,j+1));
-            mii[6] = qBlue(map.pixel(i+1,j-1));
-            mii[7] = qBlue(map.pixel(i+1,j));
+            mii[5] = qBlue(map.pixel(i+1,j));
+            mii[6] = qBlue(map.pixel(i-1,j+1));
+            mii[7] = qBlue(map.pixel(i,j+1));
             mii[8] = qBlue(map.pixel(i+1,j+1));
             QMatrix3x3 matrix(mii);
-            sobelY.setPixel(i,j,std::abs(sumMat3D(matrix,kernel)));
+
+            sobelY.setPixel(i,j,(sumMat3D(matrix,kernel)));
         }
     }
     sobelY.save("testy.png");
