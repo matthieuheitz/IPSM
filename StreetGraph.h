@@ -62,6 +62,9 @@ public:
     // Draw an image with major hyperstreamlines
     QPixmap drawStreetGraph(bool showNodes, bool showSeeds);
 
+    // Draw the road network using the painter
+    void drawRoads(QPainter& painter, QSize imageSize);
+
     // Clear the stored street graph (Nodes, Roads)
     // Warning: Doesn't clear the seed list
     void clearStoredStreetGraph();

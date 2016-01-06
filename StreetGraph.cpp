@@ -274,33 +274,25 @@ QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
     }
 
     QPainter painter(&pixmap);
-    QPen penRoad(Qt::blue);
+
+    QPen penRoad(Qt::yellow);
     penRoad.setWidth(2);
+    QPen penRoadBlack(Qt::black);
+    penRoadBlack.setWidth(4);
     QPen penNode(Qt::red);
     penNode.setWidth(3);
     QPen penSeed(Qt::darkGreen);
     penSeed.setWidth(4);
 
-    NodeMapIterator itn = mNodes.begin(), itn_end = mNodes.end();
-    RoadMapIterator itr = mRoads.begin(), itr_end = mRoads.end();
+    // Draw two times in different colors to create
+    // a road effect
+    painter.setPen(penRoadBlack);
+    drawRoads(painter, imageSize);
+    painter.setPen(penRoad);
+    drawRoads(painter, imageSize);
 
-    // Draw the roads
-    for(; itr != itr_end ; itr++)
-    {
-        painter.setPen(penRoad);
-        for(int i=1 ; i < itr->segments.size() ; i++)
-        {
-            QPointF a = itr->segments[i-1];
-            QPointF b = itr->segments[i];
-            a.rx() *= imageSize.width()/mRegionSize.width();
-            a.ry() *= imageSize.height()/mRegionSize.height();
-            a.ry() = imageSize.height() - a.y();
-            b.rx() *= imageSize.width()/mRegionSize.width();
-            b.ry() *= imageSize.height()/mRegionSize.height();
-            b.ry() = imageSize.height() - b.y();
-            painter.drawLine(a, b);
-        }
-    }
+    NodeMapIterator itn = mNodes.begin(), itn_end = mNodes.end();
+
     // Draw the nodes
     if(showNodes)
     {
@@ -329,6 +321,28 @@ QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
     }
     emit newStreetGraphImage(pixmap);
     return pixmap;
+}
+
+void StreetGraph::drawRoads(QPainter& painter, QSize imageSize)
+{
+    RoadMapIterator itr = mRoads.begin(), itr_end = mRoads.end();
+
+    // Draw the roads
+    for(; itr != itr_end ; itr++)
+    {
+        for(int i=1 ; i < itr->segments.size() ; i++)
+        {
+            QPointF a = itr->segments[i-1];
+            QPointF b = itr->segments[i];
+            a.rx() *= imageSize.width()/mRegionSize.width();
+            a.ry() *= imageSize.height()/mRegionSize.height();
+            a.ry() = imageSize.height() - a.y();
+            b.rx() *= imageSize.width()/mRegionSize.width();
+            b.ry() *= imageSize.height()/mRegionSize.height();
+            b.ry() = imageSize.height() - b.y();
+            painter.drawLine(a,b);
+        }
+    }
 }
 
 void StreetGraph::clearStoredStreetGraph()
