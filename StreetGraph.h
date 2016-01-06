@@ -58,6 +58,9 @@ public:
 
     // Compute the street graph from the stored tensor field
     void computeStreetGraph(bool clearStorage);
+    void computeStreetGraph2(bool clearStorage);
+    // 1 : doesn't check for segments being too long. Doesn't replant seeds
+    // 2 : Checks for segments being too long. Replants seeds
 
     // Draw an image with major hyperstreamlines
     QPixmap drawStreetGraph(bool showNodes, bool showSeeds);
