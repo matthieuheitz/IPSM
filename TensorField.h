@@ -47,6 +47,8 @@ public:
     void fillGridBasisField(float theta, float l);
     // Generate a heightmap basis function from a filename
     void fillHeightBasisField(QString filename);
+    // Same thing, using a sobel filter to approximate the gradient
+    void fillHeightBasisFieldSobel(QString filename);
     // Generate a radial basis field
     // The center coordinates must be in [0,1], considering that
     // The bottom left corner of the image is (0,0) and bottom right
@@ -152,6 +154,12 @@ QVector2D getTensorMajorEigenVector(QVector4D tensor);
 // Returns the normalized minor eigenvector of the passed tensor.
 // Warning : This only works if the tensor is traceless, real and symmetrical
 QVector2D getTensorMinorEigenVector(QVector4D tensor);
+// Returns the image created by applying Sobel filter on x
+QImage applySobelX(QImage map);
+// Returns the image created by applying Sobel filter on y
+QImage applySobelY(QImage map);
+// Returns the sum of elements of a matrix 3x3
+int sumMat3D(QMatrix3x3 matrix, QMatrix3x3 kernel);
 
 // Returns whether the tensor is real, symmetrical and traceless, or not
 bool isSymetricalAndTraceless(QVector4D tensor);

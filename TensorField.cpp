@@ -94,14 +94,15 @@ void TensorField::fillHeightBasisField(QString filename)
     QColor currentPixel, nextPixelI, nextPixelJ;
     QVector2D grad;
     float theta, r;
-    for(int i=0; i<mFieldSize.height()-1 ; i++)
+
+    for(int i=0; i<mFieldSize.width()-1 ; i++)
     {
-        for(int j=0; j<mFieldSize.width()-1 ; j++)
+        for(int j=0; j<mFieldSize.height()-1 ; j++)
         {
             QVector4D tensor;
-            currentPixel = mHeightMap.pixel(i,j);
-            nextPixelI = mHeightMap.pixel(i+1,j);
-            nextPixelJ = mHeightMap.pixel(i,j+1);
+            currentPixel = mHeightMap.pixel(j,i);
+            nextPixelI = mHeightMap.pixel(j+1,i);
+            nextPixelJ = mHeightMap.pixel(j,i+1);
             grad.setX(currentPixel.blue()-nextPixelJ.blue());
             grad.setY(currentPixel.blue()-nextPixelI.blue());
             theta = std::atan2(grad.y(),grad.x()) + M_PI/2.0;
@@ -111,7 +112,45 @@ void TensorField::fillHeightBasisField(QString filename)
             tensor.setZ(sin(2.0*theta));
             tensor.setW(-cos(2.0*theta));
             tensor *= r;
-            mData[i][j] = tensor;
+            mData[mFieldSize.width() -1 - i][j] = tensor;
+        }
+    }
+    mFieldIsFilled = true;
+}
+
+void TensorField::fillHeightBasisFieldSobel(QString filename)
+{
+    QImage mHeightMap = QImage(filename);
+    if(mHeightMap.isNull())
+    {
+        qCritical()<<"fillHeightBasisField(): File "<<filename<<" not found";
+        return;
+    }
+    this->setFieldSize(mHeightMap.size());
+    QImage mapSobelX, mapSobelY;
+    QColor pixSobelX, pixSobelY;
+    float theta, r;
+
+    mapSobelX = applySobelX(mHeightMap);
+    mapSobelY = applySobelY(mHeightMap);
+
+    for(int i=0; i<mFieldSize.width()-1 ; i++)
+    {
+        for(int j=0; j<mFieldSize.height()-1 ; j++)
+        {
+            QVector4D tensor;
+            pixSobelX = mapSobelX.pixel(j,i);
+            pixSobelY = mapSobelY.pixel(j,i);
+
+            theta = std::atan2(abs(pixSobelY.blue()),abs(pixSobelX.blue()))+ M_PI/2.0;
+            r = std::sqrt(std::pow(pixSobelY.blue(),2.0) + std::pow(pixSobelX.blue(),2.0));
+
+            tensor.setX(cos(2.0*theta));
+            tensor.setY(sin(2.0*theta));
+            tensor.setZ(sin(2.0*theta));
+            tensor.setW(-cos(2.0*theta));
+            tensor *= r;
+            mData[mFieldSize.width() -1 -i][j] = tensor;
         }
     }
     mFieldIsFilled = true;
@@ -208,9 +247,9 @@ QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
     int scaleI = mFieldSize.height()/numberOfTensorsToDisplay;
     int scaleJ = mFieldSize.width()/numberOfTensorsToDisplay;
 
-    for(int i=0; i<mFieldSize.height() ; i=i+scaleI)
+    for(int i=0; i<mFieldSize.width() ; i=i+scaleI)
     {
-        for(int j=0; j<mFieldSize.width() ; j=j+scaleJ)
+        for(int j=0; j<mFieldSize.height() ; j=j+scaleJ)
         {
             if(drawVector1)
             {
@@ -357,7 +396,7 @@ QVector4D getTensorEigenVectors(QVector4D tensor)
     }
     if(isDegenerate(tensor))
     {
-        return QVector4D(1,0,0,1);
+        return QVector4D(0,0,0,0);
     }
     Eigen::Matrix2f m(2,2);
     m(0,0) = tensor.x();
@@ -402,6 +441,102 @@ QVector2D getTensorMajorEigenVector(QVector4D tensor)
 QVector2D getTensorMinorEigenVector(QVector4D tensor)
 {
     return getSecondVector(getTensorEigenVectors(tensor));
+}
+
+QImage applySobelX(QImage map)
+{
+    QSize size;
+    size = map.size();
+    QImage sobelX(size,QImage::Format_RGB32);
+    sobelX.fill(0);
+    float kii[9], mii[9];
+    kii[0] = -1.0f;
+    kii[1] = 0.0f;
+    kii[2] = 1.0f;
+    kii[3] = -2.0f;
+    kii[4] = 0.0f;
+    kii[5] = 2.0f;
+    kii[6] = -1.0f;
+    kii[7] = 0.0f;
+    kii[8] = 1.0f;
+
+    QMatrix3x3 kernel(kii);
+
+    for (int i=1; i<size.width()-2; i++)
+    {
+        for (int j=1; j<size.height()-2; j++)
+        {
+            mii[0] = qBlue(map.pixel(i-1,j-1));
+            mii[1] = qBlue(map.pixel(i,j-1));
+            mii[2] = qBlue(map.pixel(i+1,j-1));
+            mii[3] = qBlue(map.pixel(i-1,j));
+            mii[4] = qBlue(map.pixel(i,j));
+            mii[5] = qBlue(map.pixel(i+1,j));
+            mii[6] = qBlue(map.pixel(i-1,j+1));
+            mii[7] = qBlue(map.pixel(i,j+1));
+            mii[8] = qBlue(map.pixel(i+1,j+1));
+            QMatrix3x3 matrix(mii);
+
+            sobelX.setPixel(i,j,(sumMat3D(matrix,kernel)));
+        }
+    }
+    sobelX.save("testx.png");
+    return sobelX;
+}
+
+QImage applySobelY(QImage map)
+{
+    QSize size;
+    size = map.size();
+    QImage sobelY(size,QImage::Format_RGB32);
+    sobelY.fill(0);
+    float kii[9], mii[9];
+    kii[0] = -1.0f;
+    kii[1] = -2.0f;
+    kii[2] = -1.0f;
+    kii[3] = 0.0f;
+    kii[4] = 0.0f;
+    kii[5] = 0.0f;
+    kii[6] = 1.0f;
+    kii[7] = 2.0f;
+    kii[8] = 1.0f;
+
+    QMatrix3x3 kernel(kii);
+
+    for (int i=1; i<size.width()-2; i++)
+    {
+        for (int j=1; j<size.height()-2; j++)
+        {
+            mii[0] = qBlue(map.pixel(i-1,j-1));
+            mii[1] = qBlue(map.pixel(i,j-1));
+            mii[2] = qBlue(map.pixel(i+1,j-1));
+            mii[3] = qBlue(map.pixel(i-1,j));
+            mii[4] = qBlue(map.pixel(i,j));
+            mii[5] = qBlue(map.pixel(i+1,j));
+            mii[6] = qBlue(map.pixel(i-1,j+1));
+            mii[7] = qBlue(map.pixel(i,j+1));
+            mii[8] = qBlue(map.pixel(i+1,j+1));
+            QMatrix3x3 matrix(mii);
+
+            sobelY.setPixel(i,j,(sumMat3D(matrix,kernel)));
+        }
+    }
+    sobelY.save("testy.png");
+    return sobelY;
+}
+
+int sumMat3D(QMatrix3x3 matrix, QMatrix3x3 kernel)
+{
+    int sum;
+    sum = 0;
+    for (int i=0; i<3; i++)
+    {
+        for (int j=0; j<3; j++)
+        {
+            sum += matrix(i,j)*kernel(i,j);
+        }
+    }
+    return sum;
 }
 
 bool isSymetricalAndTraceless(QVector4D tensor)
