@@ -338,12 +338,6 @@ void StreetGraph::computeStreetGraph2(bool clearStorage)
 
         if(tooLong)
         {
-            // Connect Nodes and Roads
-            Node& node2 = mNodes[++mLastNodeID];
-            node1.connectedNodeIDs.push_back(mLastNodeID);
-            node2.position = road.segments.last();
-            node2.connectedNodeIDs.push_back(mLastNodeID-1);
-            node2.connectedRoadIDs.push_back(mLastRoadID);
             // Replant a seed only if it's not too close from another seed
             if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation/4.0f))
             {
