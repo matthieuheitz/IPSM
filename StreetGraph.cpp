@@ -205,14 +205,14 @@ void StreetGraph::computeStreetGraph(bool clearStorage)
             if(majorGrowth)
             {
                 majorDirection = mTensorField->getMajorEigenVector(i,j);
-                if(QVector2D::dotProduct(majorDirection,currentDirection) < 0)
-                {
-                    majorDirection *= -1;
-                }
             }
             else
             {
                 majorDirection = mTensorField->getMinorEigenVector(i,j);
+            }
+            if(QVector2D::dotProduct(majorDirection,currentDirection) < 0)
+            {
+                majorDirection *= -1;
             }
             QPointF nextPosition = currentPosition + (step*majorDirection).toPointF();
             tooLong = exceedingLengthStoppingCondition(road.segments);
