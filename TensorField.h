@@ -159,7 +159,7 @@ QImage applySobelX(QImage map);
 // Returns the image created by applying Sobel filter on y
 QImage applySobelY(QImage map);
 // Returns the sum of elements of a matrix 3x3
-float sumMat3D(QMatrix3x3 matrix, QMatrix3x3 kernel);
+int sumMat3D(QMatrix3x3 matrix, QMatrix3x3 kernel);
 
 // Returns whether the tensor is real, symmetrical and traceless, or not
 bool isSymetricalAndTraceless(QVector4D tensor);
