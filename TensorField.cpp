@@ -424,6 +424,10 @@ QVector4D getTensorEigenVectors(QVector4D tensor)
     {
         return QVector4D(0,0,0,0);
     }
+    if(isFuzzyEqual(tensor.x(), 1) && isFuzzyEqual(tensor.y(), 0))
+    {
+        return QVector4D(1,0,0,1);
+    }
     Eigen::Matrix2f m(2,2);
     m(0,0) = tensor.x();
     m(1,0) = tensor.y();
@@ -449,6 +453,10 @@ QVector2D getTensorEigenValues(QVector4D tensor)
     if(isDegenerate(tensor))
     {
         return QVector2D(0,0);
+    }
+    if(isFuzzyEqual(tensor.x(), 1) && isFuzzyEqual(tensor.y(), 0))
+    {
+        return QVector2D(1,-1);
     }
     Eigen::Matrix2f m(2,2);
     m(0,0) = tensor.x();
