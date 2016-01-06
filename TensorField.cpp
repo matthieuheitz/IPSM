@@ -525,9 +525,9 @@ QImage applySobelY(QImage map)
     return sobelY;
 }
 
-float sumMat3D(QMatrix3x3 matrix, QMatrix3x3 kernel)
+int sumMat3D(QMatrix3x3 matrix, QMatrix3x3 kernel)
 {
-    float sum;
+    int sum;
     sum = 0;
     for (int i=0; i<3; i++)
     {
