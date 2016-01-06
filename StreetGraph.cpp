@@ -253,6 +253,20 @@ QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
     QPixmap pixmap(imageSize);
     pixmap.fill();
 
+    //    QPixmap pixmap;
+    if(mTensorField->isWatermapLoaded())
+    {
+        QString filename = mTensorField->getWatermapFilename();
+        mWatermap = QImage(filename);
+        if(mWatermap.isNull())
+        {
+            qCritical()<<"applyWaterMap(): File "<<filename<<" not found";
+            return QPixmap();
+        }
+        pixmap.convertFromImage(mWatermap);
+//        emit newStreetGraphImage(pixmap);
+    }
+
     if(!(mTensorField->isFieldFilled()))
     {
         qCritical()<<"drawStreetGraph(): Tensor field is empty";

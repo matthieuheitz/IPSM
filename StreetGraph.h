@@ -112,6 +112,8 @@ private:
     int mLastRoadID;
     // Distance for road density
     float mDistSeparation;
+    // Watermap
+    QImage mWatermap;
 
 };
 
