@@ -12,6 +12,7 @@ StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *fiel
     mRegionSize.rheight() = (topRight-bottomLeft).y();
     mLastNodeID = 0;
     mLastRoadID = 0;
+    mSeedInitMethod = 0;
 }
 
 void StreetGraph::createRandomSeedList(int numberOfSeeds, bool append)
@@ -75,6 +76,25 @@ void StreetGraph::createGridSeedList(QSize numberOfSeeds, bool append)
             QPointF position = origin + QPointF(j*dv, i*du);
             mSeeds.push_back(position);
         }
+    }
+}
+
+void StreetGraph::generateSeedListWithUIMethod()
+{
+    switch(mSeedInitMethod)
+    {
+    case 0:
+        createGridSeedList(QSize(10,10),false);
+        break;
+    case 1:
+        createRandomSeedList(50, false);
+        break;
+    case 2:
+        createDensityConstrainedSeedList(100, false);
+        break;
+    default:
+        qWarning()<<"Unrecognized seed initialization method";
+        break;
     }
 }
 
@@ -164,9 +184,8 @@ void StreetGraph::computeStreetGraph(bool clearStorage)
         return;
     }
     // Generate the seeds
-//    createRandomSeedList(50, false);
-    createDensityConstrainedSeedList(100, false);
-//    createGridSeedList(QSize(10,10),false);
+    generateSeedList();
+
     float step = mRegionSize.height()/100.0f; // Should be function of curvature
     QSize fieldSize = mTensorField->getFieldSize();
     bool majorGrowth = true;
@@ -264,9 +283,7 @@ void StreetGraph::computeStreetGraph2(bool clearStorage)
         return;
     }
     // Generate the seeds
-//    createRandomSeedList(50, false);
-    createDensityConstrainedSeedList(100, false);
-//    createGridSeedList(QSize(10,10),false);
+    generateSeedList();
     float step = mRegionSize.height()/100.0f; // Should be function of curvature
     QSize fieldSize = mTensorField->getFieldSize();
     bool majorGrowth = true;
@@ -358,13 +375,10 @@ void StreetGraph::computeStreetGraph3(bool clearStorage)
         qCritical()<<"ERROR: Tensor field is empty";
         return;
     }
-
-//    createRandomSeedList(50, false);
-//    createDensityConstrainedSeedList(100, false);
-    createGridSeedList(QSize(10,10),false);
+    // Generate the seeds
+    generateSeedList();
 
     bool majorGrowth = true;
-
     for(int k=0 ; k<mSeeds.size() ; k++)
     {
         // Create a node

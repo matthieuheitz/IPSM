@@ -50,6 +50,9 @@ public:
     // Create a list of seeds spread in a grid pattern on the region
     void createGridSeedList(QSize numberOfSeeds, bool append);
 
+    // Create a list of seeds following the method asked by the user in the UI
+    void generateSeedListWithUIMethod();
+
     // Returns wether the point is too close from one of the existing seeds
     bool pointRespectSeedSeparationDistance(QPointF point, float separationDistance);
 
@@ -88,6 +91,8 @@ public slots:
 
     // Main function : compute and draw the street graph
     void generateStreetGraph();
+    // Change method to initialize seeds
+    void changeSeedInitMethod(int index) {mSeedInitMethod = index;}
 
 private:
 
@@ -124,6 +129,8 @@ private:
     float mDistSeparation;
     // Watermap
     QImage mWatermap;
+    // Method to use for seed initialization
+    int mSeedInitMethod;
 
 };
 
