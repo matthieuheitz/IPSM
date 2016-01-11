@@ -50,6 +50,9 @@ public:
     // Create a list of seeds spread in a grid pattern on the region
     void createGridSeedList(QSize numberOfSeeds, bool append);
 
+    // Create a list of seeds following the method asked by the user in the UI
+    void generateSeedListWithUIMethod();
+
     // Returns wether the point is too close from one of the existing seeds
     bool pointRespectSeedSeparationDistance(QPointF point, float separationDistance);
 
@@ -59,8 +62,12 @@ public:
     // Compute the street graph from the stored tensor field
     void computeStreetGraph(bool clearStorage);
     void computeStreetGraph2(bool clearStorage);
+    void computeStreetGraph3(bool clearStorage);
     // 1 : doesn't check for segments being too long. Doesn't replant seeds
     // 2 : Checks for segments being too long. Replants seeds
+    // 3 : Seeds grow in both directions
+
+    Node& growRoad(Road& road, Node& startNode, bool growInMajorDirection, bool growInOppositeDirection, bool useExceedLenStopCond);
 
     // Draw an image with major hyperstreamlines
     QPixmap drawStreetGraph(bool showNodes, bool showSeeds);
@@ -84,6 +91,8 @@ public slots:
 
     // Main function : compute and draw the street graph
     void generateStreetGraph();
+    // Change method to initialize seeds
+    void changeSeedInitMethod(int index) {mSeedInitMethod = index;}
 
 private:
 
@@ -120,6 +129,8 @@ private:
     float mDistSeparation;
     // Watermap
     QImage mWatermap;
+    // Method to use for seed initialization
+    int mSeedInitMethod;
 
 };
 

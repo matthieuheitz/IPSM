@@ -31,17 +31,10 @@
     </item>
     <item row="1" column="0">
      <layout class="QGridLayout" name="gridLayout_4">
-      <item row="4" column="0">
-       <widget class="QPushButton" name="buttonGenerateHeightmapTF">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="buttonGenerateGridTF">
         <property name="text">
-         <string>Generate Heightmap TF</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QPushButton" name="buttonGeneratePrincipalRG">
-        <property name="text">
-         <string>Generate Principal Road Graph</string>
+         <string>Generate Grid TF</string>
         </property>
        </widget>
       </item>
@@ -52,10 +45,10 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QPushButton" name="buttonGenerateGridTF">
+      <item row="10" column="0">
+       <widget class="QPushButton" name="buttonGeneratePrincipalRG">
         <property name="text">
-         <string>Generate Grid TF</string>
+         <string>Generate Principal Road Graph</string>
         </property>
        </widget>
       </item>
@@ -66,25 +59,15 @@
         </property>
        </widget>
       </item>
+      <item row="9" column="0">
+       <widget class="QComboBox" name="comboBoxSeedInit"/>
+      </item>
       <item row="3" column="0">
        <widget class="Line" name="line_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
        </widget>
-      </item>
-      <item row="8" column="0">
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
       </item>
       <item row="2" column="0">
        <widget class="QPushButton" name="buttonGenerateRadialTF">
@@ -97,6 +80,33 @@
        <widget class="QPushButton" name="buttonAddWatermap">
         <property name="text">
          <string>Add Watermap</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QPushButton" name="buttonGenerateHeightmapTF">
+        <property name="text">
+         <string>Generate Heightmap TF</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Seed Initialization Method</string>
         </property>
        </widget>
       </item>

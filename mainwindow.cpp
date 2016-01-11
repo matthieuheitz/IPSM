@@ -10,6 +10,10 @@ MainWindow::MainWindow(QWidget *parent) :
     mTensorField = new TensorField(mTensorFieldSize);
     mStreetGraph = new StreetGraph(QPointF(0,0), QPointF(100,100),mTensorField,10);
 
+    ui->comboBoxSeedInit->addItem("Regular Grid");
+    ui->comboBoxSeedInit->addItem("Random distribution");
+    ui->comboBoxSeedInit->addItem("Poisson distribution");
+
     QObject::connect(ui->buttonAddWatermap, SIGNAL(clicked()),
                      mTensorField, SLOT(actionAddWatermap()));
     QObject::connect(ui->buttonGenerateGridTF, SIGNAL(clicked()),
@@ -26,6 +30,8 @@ MainWindow::MainWindow(QWidget *parent) :
                      mStreetGraph, SLOT(generateStreetGraph()));
     QObject::connect(mStreetGraph, SIGNAL(newStreetGraphImage(QPixmap)),
                      ui->labelRoadmapDisplay, SLOT(setPixmap(QPixmap)));
+    QObject::connect(ui->comboBoxSeedInit, SIGNAL(currentIndexChanged(int)),
+                     mStreetGraph, SLOT(changeSeedInitMethod(int)));
 }
 
 MainWindow::~MainWindow()

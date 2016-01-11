@@ -12,6 +12,7 @@ StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *fiel
     mRegionSize.rheight() = (topRight-bottomLeft).y();
     mLastNodeID = 0;
     mLastRoadID = 0;
+    mSeedInitMethod = 0;
 }
 
 void StreetGraph::createRandomSeedList(int numberOfSeeds, bool append)
@@ -75,6 +76,25 @@ void StreetGraph::createGridSeedList(QSize numberOfSeeds, bool append)
             QPointF position = origin + QPointF(j*dv, i*du);
             mSeeds.push_back(position);
         }
+    }
+}
+
+void StreetGraph::generateSeedListWithUIMethod()
+{
+    switch(mSeedInitMethod)
+    {
+    case 0:
+        createGridSeedList(QSize(10,10),false);
+        break;
+    case 1:
+        createRandomSeedList(50, false);
+        break;
+    case 2:
+        createDensityConstrainedSeedList(100, false);
+        break;
+    default:
+        qWarning()<<"Unrecognized seed initialization method";
+        break;
     }
 }
 
@@ -164,11 +184,8 @@ void StreetGraph::computeStreetGraph(bool clearStorage)
         return;
     }
     // Generate the seeds
-//    createRandomSeedList(50, false);
-    createDensityConstrainedSeedList(100, false);
-//    createGridSeedList(QSize(10,10),false);
-    float step = mRegionSize.height()/100.0f; // Should be function of curvature
-    QSize fieldSize = mTensorField->getFieldSize();
+    generateSeedList();
+
     bool majorGrowth = true;
     for(int k=0 ; k<mSeeds.size() ; k++)
     {
@@ -176,79 +193,14 @@ void StreetGraph::computeStreetGraph(bool clearStorage)
         // Grow a road starting from this node using the tensor eigen vector
         // until one of the condition is reached
         Node& node1 = mNodes[++mLastNodeID];
-        Road& road = mRoads[++mLastRoadID];
-
         node1.position = mSeeds[k];
-        road.type = Principal;
 
+        Road& road = mRoads[++mLastRoadID];
         node1.connectedRoadIDs.push_back(mLastRoadID);
+        road.type = Principal;
         road.nodeID1 = mLastNodeID;
 
-        // The road contains also the position of its extreme nodes
-        // Start from the node position
-        QPointF currentPosition = node1.position;
-        // Holds wether road stopped because it was too long or not
-        bool tooLong;
-        bool stopGrowth = false;
-        int preventInfiniteLoop = 0;
-        while(!stopGrowth && preventInfiniteLoop < 1000)
-        {
-            preventInfiniteLoop++;
-            QVector2D currentDirection;
-            if(road.segments.size() != 0)
-            {
-                currentDirection = QVector2D(currentPosition-road.segments.last());
-            }
-            road.segments.push_back(currentPosition);
-            // TODO: Make a function for that
-            int i = round((currentPosition.y()-mBottomLeft.y())/mRegionSize.height()*
-                        (fieldSize.height()-1));
-            int j = round((currentPosition.x()-mBottomLeft.x())/mRegionSize.width()*
-                        (fieldSize.width()-1));
-            QVector2D majorDirection;
-            if(majorGrowth)
-            {
-                majorDirection = mTensorField->getMajorEigenVector(i,j);
-            }
-            else
-            {
-                majorDirection = mTensorField->getMinorEigenVector(i,j);
-            }
-            if(QVector2D::dotProduct(majorDirection,currentDirection) < 0)
-            {
-                majorDirection *= -1;
-            }
-            QPointF nextPosition = currentPosition + (step*majorDirection).toPointF();
-//            tooLong = exceedingLengthStoppingCondition(road.segments);
-            stopGrowth = boundaryStoppingCondition(nextPosition)
-                      || degeneratePointStoppingCondition(i,j)
-                      || loopStoppingCondition(nextPosition,road.segments);
-//                      || tooLong;
-            currentPosition = nextPosition;
-        }
-        majorGrowth = !majorGrowth;
-
-        // Connect Nodes and Roads
-        Node& node2 = mNodes[++mLastNodeID];
-        node1.connectedNodeIDs.push_back(mLastNodeID);
-        node2.position = road.segments.last();
-        node2.connectedNodeIDs.push_back(mLastNodeID-1);
-        node2.connectedRoadIDs.push_back(mLastRoadID);
-
-//        if(tooLong)
-//        {
-//            // Connect Nodes and Roads
-//            Node& node2 = mNodes[++mLastNodeID];
-//            node1.connectedNodeIDs.push_back(mLastNodeID);
-//            node2.position = road.segments.last();
-//            node2.connectedNodeIDs.push_back(mLastNodeID-1);
-//            node2.connectedRoadIDs.push_back(mLastRoadID);
-//            // Replant a seed only if it's not too close from another seed
-//            if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation/4.0f))
-//            {
-//                mSeeds.push_back(node2.position);
-//            }
-//        }
+        growRoad(road, node1, majorGrowth, false, false);
     }
 }
 
@@ -264,93 +216,144 @@ void StreetGraph::computeStreetGraph2(bool clearStorage)
         return;
     }
     // Generate the seeds
-//    createRandomSeedList(50, false);
-    createDensityConstrainedSeedList(100, false);
-//    createGridSeedList(QSize(10,10),false);
-    float step = mRegionSize.height()/100.0f; // Should be function of curvature
-    QSize fieldSize = mTensorField->getFieldSize();
-    bool majorGrowth = true;
+    generateSeedList();
 
+    bool majorGrowth = true;
     for(int k=0 ; k<mSeeds.size() ; k++)
     {
         // Create a node
         // Grow a road starting from this node using the tensor eigen vector
         // until one of the condition is reached
         Node& node1 = mNodes[++mLastNodeID];
-        Road& road = mRoads[++mLastRoadID];
-
         node1.position = mSeeds[k];
-        road.type = Principal;
 
+        Road& road = mRoads[++mLastRoadID];
         node1.connectedRoadIDs.push_back(mLastRoadID);
+        road.type = Principal;
         road.nodeID1 = mLastNodeID;
 
-        // The road contains also the position of its extreme nodes
-        // Start from the node position
-        QPointF currentPosition = node1.position;
-        // Holds wether road stopped because it was too long or not
-        bool tooLong;
-        bool stopGrowth = false;
-        int preventInfiniteLoop = 0;
-        while(!stopGrowth && preventInfiniteLoop < 1000)
-        {
-            preventInfiniteLoop++;
-            QVector2D currentDirection;
-            if(road.segments.size() != 0)
-            {
-                currentDirection = QVector2D(currentPosition-road.segments.last());
-            }
-            road.segments.push_back(currentPosition);
-            // TODO: Make a function for that
-            int i = round((currentPosition.y()-mBottomLeft.y())/mRegionSize.height()*
-                        (fieldSize.height()-1));
-            int j = round((currentPosition.x()-mBottomLeft.x())/mRegionSize.width()*
-                        (fieldSize.width()-1));
-            QVector2D majorDirection;
-            if(majorGrowth)
-            {
-                majorDirection = mTensorField->getMajorEigenVector(i,j);
-            }
-            else
-            {
-                majorDirection = mTensorField->getMinorEigenVector(i,j);
-            }
-            if(QVector2D::dotProduct(majorDirection,currentDirection) < 0)
-            {
-                majorDirection *= -1;
-            }
-            QPointF nextPosition = currentPosition + (step*majorDirection).toPointF();
-            tooLong = exceedingLengthStoppingCondition(road.segments);
-            stopGrowth = boundaryStoppingCondition(nextPosition)
-                      || degeneratePointStoppingCondition(i,j)
-                      || loopStoppingCondition(nextPosition,road.segments)
-                      || tooLong;
-            currentPosition = nextPosition;
-        }
-        majorGrowth = !majorGrowth;
-
-        // Connect Nodes and Roads
-        Node& node2 = mNodes[++mLastNodeID];
-        node1.connectedNodeIDs.push_back(mLastNodeID);
-        node2.position = road.segments.last();
-        node2.connectedNodeIDs.push_back(mLastNodeID-1);
-        node2.connectedRoadIDs.push_back(mLastRoadID);
-
-        if(tooLong)
-        {
-            // Replant a seed only if it's not too close from another seed
-            if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation/4.0f))
-            {
-                mSeeds.push_back(node2.position);
-            }
-        }
+        growRoad(road, node1, majorGrowth, false, true);
     }
 }
+
+void StreetGraph::computeStreetGraph3(bool clearStorage)
+{
+    if(clearStorage)
+    {
+        clearStoredStreetGraph();
+    }
+    if(mTensorField == NULL)
+    {
+        qCritical()<<"ERROR: Tensor field is empty";
+        return;
+    }
+    // Generate the seeds
+    generateSeedList();
+
+    bool majorGrowth = true;
+    for(int k=0 ; k<mSeeds.size() ; k++)
+    {
+        // Create a node
+        Node& node1 = mNodes[++mLastNodeID];
+        node1.position = mSeeds[k];
+
+        Road& road = mRoads[++mLastRoadID];
+        node1.connectedRoadIDs.push_back(mLastRoadID);
+        road.type = Principal;
+        road.nodeID1 = mLastNodeID;
+
+        Road& road2 = mRoads[++mLastRoadID];
+        node1.connectedRoadIDs.push_back(mLastRoadID);
+        road2.type = Principal;
+        road2.nodeID1 = mLastNodeID;
+
+        growRoad(road, node1, majorGrowth, false, false);
+        growRoad(road2, node1, majorGrowth, true, false);
+
+        majorGrowth = !majorGrowth;
+    }
+}
+
+Node& StreetGraph::growRoad(Road& road, Node& startNode, bool growInMajorDirection,
+                            bool growInOppositeDirection, bool useExceedLenStopCond)
+{
+    // Grow a road starting from this node using the tensor eigen vector
+    // until one of the condition is reached
+    float step = mRegionSize.height()/100.0f; // Should be function of curvature
+    QSize fieldSize = mTensorField->getFieldSize();
+
+    // The road contains also the position of its extreme nodes
+    // Start from the node position
+    QPointF currentPosition = startNode.position;
+    // Holds wether road stopped because it was too long or not
+    bool tooLong = false;
+    bool stopGrowth = false;
+    int preventInfiniteLoop = 0;
+    while(!stopGrowth && preventInfiniteLoop < 1000)
+    {
+        QVector2D currentDirection;
+        if(preventInfiniteLoop != 0)
+        {
+            currentDirection = QVector2D(currentPosition-road.segments.last());
+        }
+        road.segments.push_back(currentPosition);
+        int i = round((currentPosition.y()-mBottomLeft.y())/mRegionSize.height()*
+                    (fieldSize.height()-1));
+        int j = round((currentPosition.x()-mBottomLeft.x())/mRegionSize.width()*
+                    (fieldSize.width()-1));
+        QVector2D majorDirection;
+        if(growInMajorDirection)
+        {
+            majorDirection = mTensorField->getMajorEigenVector(i,j);
+        }
+        else
+        {
+            majorDirection = mTensorField->getMinorEigenVector(i,j);
+        }
+        // First condition is to not grow backwards
+        // Second condition is applicable only at the beginning.
+        // It allows to grow the road in the 2 opposite directions
+        if(QVector2D::dotProduct(majorDirection,currentDirection) < 0
+                || (preventInfiniteLoop == 0 && growInOppositeDirection))
+        {
+            majorDirection *= -1;
+        }
+        QPointF nextPosition = currentPosition + (step*majorDirection).toPointF();
+        if(useExceedLenStopCond)
+        {
+            tooLong = exceedingLengthStoppingCondition(road.segments);
+        }
+        stopGrowth = boundaryStoppingCondition(nextPosition)
+                  || degeneratePointStoppingCondition(i,j)
+                  || loopStoppingCondition(nextPosition,road.segments);
+                  || tooLong;
+        currentPosition = nextPosition;
+        preventInfiniteLoop++;
+    }
+
+    // Connect Nodes and Roads
+    Node& node2 = mNodes[++mLastNodeID];
+    startNode.connectedNodeIDs.push_back(mLastNodeID);
+    node2.position = road.segments.last();
+    node2.connectedNodeIDs.push_back(mLastNodeID-1);
+    node2.connectedRoadIDs.push_back(mLastRoadID);
+
+    if(tooLong)
+    {
+        // Replant a seed only if it's not too close from another seed
+        if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation/4.0f))
+        {
+            mSeeds.push_back(node2.position);
+        }
+    }
+    return node2;
+}
+
 
 void StreetGraph::generateStreetGraph()
 {
     // Compute the street graph
-    computeStreetGraph(true);
+    computeStreetGraph3(true);
 //    computeMajorHyperstreamlines(true);
 
     drawStreetGraph(true, false);
@@ -360,10 +363,9 @@ QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
 {
     // Draw it in an image
     QSize imageSize(512,512);
-    QPixmap pixmap(imageSize);
-    pixmap.fill();
+    QImage pixmap(imageSize, QImage::Format_ARGB32);
+    pixmap.fill(QColor::fromRgb(230,230,230));
 
-    //    QPixmap pixmap;
     if(mTensorField->isWatermapLoaded())
     {
         QString filename = mTensorField->getWatermapFilename();
@@ -373,14 +375,22 @@ QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
             qCritical()<<"applyWaterMap(): File "<<filename<<" not found";
             return QPixmap();
         }
-        pixmap.convertFromImage(mWatermap);
-//        emit newStreetGraphImage(pixmap);
+        for(int i=0; i<mWatermap.height() ; i++)
+        {
+            for(int j=0; j<mWatermap.width() ; j++)
+            {
+                if(qBlue(mWatermap.pixel(j,i)) > 0)
+                {
+                    pixmap.setPixel(j,i, mWatermap.pixel(j,i));
+                }
+            }
+        }
     }
 
     if(!(mTensorField->isFieldFilled()))
     {
         qCritical()<<"drawStreetGraph(): Tensor field is empty";
-        return pixmap;
+        return QPixmap::fromImage(pixmap);
     }
 
     QPainter painter(&pixmap);
@@ -429,8 +439,8 @@ QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
             painter.drawPoint(a);
         }
     }
-    emit newStreetGraphImage(pixmap);
-    return pixmap;
+    emit newStreetGraphImage(QPixmap::fromImage(pixmap));
+    return QPixmap::fromImage(pixmap);
 }
 
 void StreetGraph::drawRoads(QPainter& painter, QSize imageSize)
