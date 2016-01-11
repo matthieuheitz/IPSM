@@ -59,7 +59,7 @@ void TensorField::applyWaterMap(QString filename)
     {
         for(int j=0; j<waterMap.width() ; j++)
         {
-            if(qRed(waterMap.pixel(j,i)) != qBlue(waterMap.pixel(j,i)))
+            if(qBlue(waterMap.pixel(j,i)) > 0)
             {
                 mData[mFieldSize.height()-1-i][j] = QVector4D(0,0,0,0);
             }
