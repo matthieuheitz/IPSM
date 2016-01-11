@@ -360,10 +360,9 @@ QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
 {
     // Draw it in an image
     QSize imageSize(512,512);
-    QPixmap pixmap(imageSize);
-    pixmap.fill();
+    QImage pixmap(imageSize, QImage::Format_ARGB32);
+    pixmap.fill(QColor::fromRgb(230,230,230));
 
-    //    QPixmap pixmap;
     if(mTensorField->isWatermapLoaded())
     {
         QString filename = mTensorField->getWatermapFilename();
@@ -373,14 +372,22 @@ QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
             qCritical()<<"applyWaterMap(): File "<<filename<<" not found";
             return QPixmap();
         }
-        pixmap.convertFromImage(mWatermap);
-//        emit newStreetGraphImage(pixmap);
+        for(int i=0; i<mWatermap.height() ; i++)
+        {
+            for(int j=0; j<mWatermap.width() ; j++)
+            {
+                if(qBlue(mWatermap.pixel(j,i)) > 0)
+                {
+                    pixmap.setPixel(j,i, mWatermap.pixel(j,i));
+                }
+            }
+        }
     }
 
     if(!(mTensorField->isFieldFilled()))
     {
         qCritical()<<"drawStreetGraph(): Tensor field is empty";
-        return pixmap;
+        return QPixmap::fromImage(pixmap);
     }
 
     QPainter painter(&pixmap);
@@ -429,8 +436,8 @@ QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
             painter.drawPoint(a);
         }
     }
-    emit newStreetGraphImage(pixmap);
-    return pixmap;
+    emit newStreetGraphImage(QPixmap::fromImage(pixmap));
+    return QPixmap::fromImage(pixmap);
 }
 
 void StreetGraph::drawRoads(QPainter& painter, QSize imageSize)
