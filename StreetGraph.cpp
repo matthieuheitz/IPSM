@@ -184,7 +184,7 @@ void StreetGraph::computeStreetGraph(bool clearStorage)
         return;
     }
     // Generate the seeds
-    generateSeedList();
+    generateSeedListWithUIMethod();
 
     bool majorGrowth = true;
     for(int k=0 ; k<mSeeds.size() ; k++)
@@ -216,7 +216,7 @@ void StreetGraph::computeStreetGraph2(bool clearStorage)
         return;
     }
     // Generate the seeds
-    generateSeedList();
+    generateSeedListWithUIMethod();
 
     bool majorGrowth = true;
     for(int k=0 ; k<mSeeds.size() ; k++)
@@ -248,7 +248,7 @@ void StreetGraph::computeStreetGraph3(bool clearStorage)
         return;
     }
     // Generate the seeds
-    generateSeedList();
+    generateSeedListWithUIMethod();
 
     bool majorGrowth = true;
     for(int k=0 ; k<mSeeds.size() ; k++)
@@ -325,7 +325,7 @@ Node& StreetGraph::growRoad(Road& road, Node& startNode, bool growInMajorDirecti
         }
         stopGrowth = boundaryStoppingCondition(nextPosition)
                   || degeneratePointStoppingCondition(i,j)
-                  || loopStoppingCondition(nextPosition,road.segments);
+                  || loopStoppingCondition(nextPosition,road.segments)
                   || tooLong;
         currentPosition = nextPosition;
         preventInfiniteLoop++;
