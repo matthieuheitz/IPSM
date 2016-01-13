@@ -69,6 +69,62 @@ void TensorField::applyWaterMap(QString filename)
     mWaterMapIsLoaded = true;
 }
 
+void TensorField::applyBoundaries(QString filename)
+{
+    QImage waterMap = QImage(filename);
+    if(waterMap.isNull())
+    {
+        qCritical()<<"applyWaterMap(): File "<<filename<<" not found";
+        return;
+    }
+    if(waterMap.size() != mFieldSize)
+    {
+        qCritical()<<"applyWaterMap(): Watermap must be of same size as the tensor field";
+        return;
+    }
+    QImage mapSobelX, mapSobelY;
+    QColor pixSobelX, pixSobelY;
+    float theta, r;
+
+    mapSobelX = applySobelX(waterMap);
+    mapSobelY = applySobelY(waterMap);
+
+    for(int i=0; i<mFieldSize.width()-1 ; i++)
+    {
+        for(int j=0; j<mFieldSize.height()-1 ; j++)
+        {
+            QVector4D tensor;
+
+            pixSobelX = mapSobelX.pixel(j,i);
+            pixSobelY = mapSobelY.pixel(j,i);
+
+            theta = std::atan2(abs(pixSobelY.blue()),abs(pixSobelX.blue()))+ M_PI/2.0;
+            r = std::sqrt(std::pow(pixSobelY.blue(),2.0) + std::pow(pixSobelX.blue(),2.0));
+
+            tensor.setX(cos(2.0*theta));
+            tensor.setY(sin(2.0*theta));
+            tensor.setZ(sin(2.0*theta));
+            tensor.setW(-cos(2.0*theta));
+            tensor *= r;
+
+            if (!tensor.isNull()){
+                mData[mFieldSize.width() -1 -i][j] += tensor;
+                if (j<mFieldSize.height()-2 && j>0 && i<mFieldSize.width()-2 && i>0){
+                    mData[mFieldSize.width() -i][j] += tensor;
+                    mData[mFieldSize.width() -1 -i][j+1] += tensor;
+                    mData[mFieldSize.width() -2 -i][j] += tensor;
+                    mData[mFieldSize.width() -1 -i][j-1] += tensor;
+                    mData[mFieldSize.width() -i][j+1] += tensor;
+                    mData[mFieldSize.width() -2 -i][j+1] += tensor;
+                    mData[mFieldSize.width() -2 -i][j-1] += tensor;
+                    mData[mFieldSize.width() -i][j-1] += tensor;
+                }
+            }
+        }
+    }
+    mFieldIsFilled = true;
+}
+
 void TensorField::fillGridBasisField(float theta, float l, QPointF center, float decay)
 {
     float x;
@@ -249,6 +305,7 @@ void TensorField::actionAddWatermap()
         return;
     }
     this->applyWaterMap(filename);
+    this->applyBoundaries(filename);
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
