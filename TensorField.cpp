@@ -6,6 +6,8 @@
 #include <QPainter>
 #include <QPen>
 #include <QFileDialog>
+#include <QCoreApplication>
+#include <QProgressDialog>
 
 
 TensorField::TensorField(QSize fieldSize, QObject *parent) :
@@ -370,10 +372,16 @@ int TensorField::computeTensorsEigenDecomposition()
             mEigenValues[i].resize(mFieldSize.width());
         }
     }
+
+    QProgressDialog progress("Loading...",NULL, 0, mFieldSize.height()-1);
+    progress.setMinimumDuration(0);
+
     // Fill the internal containers
     int numberOfDegeneratePoints = 0;
     for(int i=0; i<mFieldSize.height() ; i++)
     {
+        progress.setValue(i);
+        QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
         for(int j=0; j<mFieldSize.width() ; j++)
         {
             mEigenVectors[i][j] = getTensorEigenVectors(mData[i][j]);
