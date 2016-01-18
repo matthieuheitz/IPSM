@@ -288,6 +288,33 @@ void TensorField::outputTensorField()
     }
 }
 
+void TensorField::smoothTensorField()
+{
+    if(!mFieldIsFilled)
+    {
+        qCritical()<<"smoothTensorField(): Tensor field is null. Initialize it first";
+        return;
+    }
+
+    QVector<QVector<QVector4D> > mDataSmooth;
+    mDataSmooth = mData;
+
+    for(int i=1; i<mFieldSize.height()-1 ; i++)
+    {
+        for(int j=1; j<mFieldSize.width()-1 ; j++)
+        {
+            mDataSmooth[i][j] = 1.0f/9.0f*(mData[i+1][j-1] + mData[i+1][j] + mData[i+1][j+1] +
+                                           mData[i][j-1]   + mData[i][j]   + mData[i][j+1] +
+                                           mData[i-1][j-1] + mData[i-1][j] + mData[i-1][j+1]);
+        }
+    }
+    mData = mDataSmooth;
+
+    this->computeTensorsEigenDecomposition();
+    this->exportEigenVectorsImage(true, true);
+
+}
+
 QPixmap TensorField::exportEigenVectorsImage(bool drawVector1, bool drawVector2,
                                               QColor color1, QColor color2)
 {

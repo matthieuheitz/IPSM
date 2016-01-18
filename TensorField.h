@@ -112,6 +112,8 @@ public slots:
     // and store them internally.
     // Return the number of degenerate points (null eigenvectors)
     int computeTensorsEigenDecomposition();
+    // Tensor field smoothing using a Gaussian filter
+    void smoothTensorField();
 
 private:
 
