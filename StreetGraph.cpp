@@ -728,6 +728,11 @@ void StreetGraph::setDrawNodes(bool drawNodes)
     }
 }
 
+void StreetGraph::setSeparationDistance(double separationDistance)
+{
+    mSeparationDistance = separationDistance;
+}
+
 bool StreetGraph::boundaryStoppingCondition(QPointF nextPosition)
 {
     if(nextPosition.x() <= mBottomLeft.x()

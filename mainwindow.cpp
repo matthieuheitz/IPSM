@@ -6,13 +6,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    double separationDistance = 10;
     mTensorFieldSize = QSize(32,32);
     mTensorField = new TensorField(mTensorFieldSize);
-    mStreetGraph = new StreetGraph(QPointF(0,0), QPointF(100,100),mTensorField,10);
+    mStreetGraph = new StreetGraph(QPointF(0,0), QPointF(100,100),mTensorField,separationDistance);
 
     ui->comboBoxSeedInit->addItem("Regular Grid");
     ui->comboBoxSeedInit->addItem("Random distribution");
     ui->comboBoxSeedInit->addItem("Poisson distribution");
+
+    ui->spinBoxDensity->setRange(0, 100);
+    ui->spinBoxDensity->setValue(separationDistance);
 
     QObject::connect(ui->buttonAddWatermap, SIGNAL(clicked()),
                      mTensorField, SLOT(actionAddWatermap()));
@@ -34,6 +38,8 @@ MainWindow::MainWindow(QWidget *parent) :
                      ui->labelRoadmapDisplay, SLOT(setPixmap(QPixmap)));
     QObject::connect(ui->checkBoxShowNodes, SIGNAL(toggled(bool)),
                      mStreetGraph, SLOT(setDrawNodes(bool)));
+    QObject::connect(ui->spinBoxDensity, SIGNAL(valueChanged(double)),
+                     mStreetGraph, SLOT(setSeparationDistance(double)));
     QObject::connect(ui->comboBoxSeedInit, SIGNAL(currentIndexChanged(int)),
                      mStreetGraph, SLOT(changeSeedInitMethod(int)));
 }

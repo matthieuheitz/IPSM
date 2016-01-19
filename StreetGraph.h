@@ -103,6 +103,8 @@ public slots:
     void changeSeedInitMethod(int index) {mSeedInitMethod = index;}
     // Set the variable for drawing nodes or not
     void setDrawNodes(bool drawNodes);
+    // Set the density variable
+    void setSeparationDistance(double separationDistance);
 
 private:
 
