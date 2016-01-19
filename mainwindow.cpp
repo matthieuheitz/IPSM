@@ -32,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent) :
                      mStreetGraph, SLOT(generateStreetGraph()));
     QObject::connect(mStreetGraph, SIGNAL(newStreetGraphImage(QPixmap)),
                      ui->labelRoadmapDisplay, SLOT(setPixmap(QPixmap)));
+    QObject::connect(ui->checkBoxShowNodes, SIGNAL(toggled(bool)),
+                     mStreetGraph, SLOT(setDrawNodes(bool)));
     QObject::connect(ui->comboBoxSeedInit, SIGNAL(currentIndexChanged(int)),
                      mStreetGraph, SLOT(changeSeedInitMethod(int)));
 }

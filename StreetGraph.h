@@ -101,6 +101,8 @@ public slots:
     void generateStreetGraph();
     // Change method to initialize seeds
     void changeSeedInitMethod(int index) {mSeedInitMethod = index;}
+    // Set the variable for drawing nodes or not
+    void setDrawNodes(bool drawNodes);
 
 private:
 
@@ -145,6 +147,8 @@ private:
     QImage mWatermap;
     // Method to use for seed initialization
     int mSeedInitMethod;
+    // Holds if nodes should be drawn in the street graph image
+    bool mDrawNodes;
 
 };
 

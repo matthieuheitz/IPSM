@@ -15,6 +15,7 @@ StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *fiel
     mLastNodeID = 0;
     mLastRoadID = 0;
     mSeedInitMethod = 0;
+    mDrawNodes = false;
 }
 
 void StreetGraph::createRandomSeedList(int numberOfSeeds, bool append)
@@ -290,7 +291,7 @@ void StreetGraph::computeStreetGraph3(bool clearStorage)
         majorGrowth = !majorGrowth;
 
         // Draw each time a road is added
-        drawStreetGraph(true, false);
+        drawStreetGraph(mDrawNodes, false);
         QCoreApplication::processEvents();
     }
 }
@@ -512,7 +513,7 @@ void StreetGraph::generateStreetGraph()
     computeStreetGraph3(true);
 //    computeMajorHyperstreamlines(true);
 
-    drawStreetGraph(true, false);
+    drawStreetGraph(mDrawNodes, false);
 }
 
 QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
@@ -716,6 +717,15 @@ void StreetGraph::clearStoredStreetGraph()
     mRoads.clear();
     mLastNodeID = 0;
     mLastRoadID = 0;
+}
+
+void StreetGraph::setDrawNodes(bool drawNodes)
+{
+    if(drawNodes != mDrawNodes)
+    {
+        mDrawNodes = drawNodes;
+        drawStreetGraph(mDrawNodes,false);
+    }
 }
 
 bool StreetGraph::boundaryStoppingCondition(QPointF nextPosition)
