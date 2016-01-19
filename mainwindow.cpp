@@ -24,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent) :
                      mTensorField, SLOT(generateRadialTensorField()));
     QObject::connect(ui->buttonGenerateHeightmapTF, SIGNAL(clicked()),
                      mTensorField, SLOT(generateHeightmapTensorField()));
+    QObject::connect(ui->buttonSmoothTF, SIGNAL(clicked()),
+                     mTensorField, SLOT(smoothTensorField()));
     QObject::connect(mTensorField, SIGNAL(newTensorFieldImage(QPixmap)),
                      ui->labelTensorFieldDisplay,SLOT(setPixmap(QPixmap)));
     QObject::connect(ui->buttonGeneratePrincipalRG, SIGNAL(clicked()),
