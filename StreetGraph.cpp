@@ -8,7 +8,7 @@
 #include "StreetGraph.h"
 
 StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *field, float distSeparation, QObject *parent) :
-    QObject(parent), mTensorField(field), mBottomLeft(bottomLeft), mTopRight(topRight), mDistSeparation(distSeparation)
+    QObject(parent), mTensorField(field), mBottomLeft(bottomLeft), mTopRight(topRight), mSeparationDistance(distSeparation)
 {
     mRegionSize.rwidth() = (topRight-bottomLeft).x();
     mRegionSize.rheight() = (topRight-bottomLeft).y();
@@ -52,7 +52,7 @@ void StreetGraph::createDensityConstrainedSeedList(int numberOfSeeds, bool appen
             float randY = qrand()/(float)RAND_MAX;
             seed = QPointF(mBottomLeft.x() + randX*mRegionSize.width(),
                          mBottomLeft.y() + randY*mRegionSize.height());
-            pointIsValid = pointRespectSeedSeparationDistance(seed,mDistSeparation);
+            pointIsValid = pointRespectSeedSeparationDistance(seed,mSeparationDistance);
             counter++;
         }
         if(pointIsValid)
@@ -368,7 +368,7 @@ Node& StreetGraph::growRoad(Road& road, Node& startNode, bool growInMajorDirecti
     if(tooLong)
     {
         // Replant a seed only if it's not too close from another seed
-        if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation/4.0f))
+        if(pointRespectSeedSeparationDistance(road.segments.last(),mSeparationDistance/4.0f))
         {
             mSeeds.push_back(node2.position);
         }
@@ -492,7 +492,7 @@ Node& StreetGraph::growRoadAndConnect(Road& road, Node& startNode, bool growInMa
         if(tooLong)
         {
             // Replant a seed only if it's not too close from another seed
-            if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation/4.0f))
+            if(pointRespectSeedSeparationDistance(road.segments.last(),mSeparationDistance/4.0f))
             {
                 mSeeds.push_back(node2.position);
             }
@@ -609,8 +609,8 @@ bool StreetGraph::meetsAnotherRoad(Road &road, int &intersectedRoadID, int &clos
         {
             //1st check: If the point is farther than mDistSeparation
             // from both ends, it can't intersect
-            if(QVector2D(roadEnd - currentSegments.first()).length() > mDistSeparation
-               && QVector2D(roadEnd - currentSegments.last()).length() > mDistSeparation)
+            if(QVector2D(roadEnd - currentSegments.first()).length() > mSeparationDistance
+               && QVector2D(roadEnd - currentSegments.last()).length() > mSeparationDistance)
             {
                 intersectedRoadID = -1;
                 closestPointID = -1;
@@ -753,7 +753,7 @@ bool StreetGraph::loopStoppingCondition(QPointF nextPosition, const QVector<QPoi
 
 bool StreetGraph::exceedingLengthStoppingCondition(const QVector<QPointF>& segments)
 {
-    if(computePathLength(segments) > mDistSeparation)
+    if(computePathLength(segments) > mSeparationDistance)
     {
         return true;
     }

@@ -140,7 +140,7 @@ private:
     int mLastNodeID;
     int mLastRoadID;
     // Distance for road density
-    float mDistSeparation;
+    float mSeparationDistance;
     // Watermap
     QImage mWatermap;
     // Method to use for seed initialization
