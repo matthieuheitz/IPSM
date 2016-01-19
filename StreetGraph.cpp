@@ -2,6 +2,8 @@
 #include <cmath>
 #include <QPainter>
 #include <QDateTime>
+#include <QCoreApplication>
+#include <QProgressDialog>
 
 #include "StreetGraph.h"
 
@@ -254,9 +256,16 @@ void StreetGraph::computeStreetGraph3(bool clearStorage)
     // Generate the seeds
     generateSeedListWithUIMethod();
 
+    QProgressDialog progress("Creating Street Graph...",NULL, 0, mSeeds.size()-1);
+    progress.setMinimumDuration(0);
+
     bool majorGrowth = true;
     for(int k=0 ; k<mSeeds.size() ; k++)
     {
+        progress.setValue(k);
+        progress.setRange(0, mSeeds.size()-1);
+        QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
         // Create a node
         Node& node1 = mNodes[++mLastNodeID];
         node1.ID = mLastNodeID;
@@ -279,6 +288,10 @@ void StreetGraph::computeStreetGraph3(bool clearStorage)
         growRoadAndConnect(road2, node1, majorGrowth, true, useExceedLength);
 
         majorGrowth = !majorGrowth;
+
+        // Draw each time a road is added
+        drawStreetGraph(true, false);
+        QCoreApplication::processEvents();
     }
 }
 
