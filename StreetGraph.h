@@ -22,6 +22,8 @@ struct Road {
     int nodeID1;
     int nodeID2;
     RoadType type;
+    float straightLength;
+    float pathLength;
 };
 
 // Structure to store an intersection (node)
@@ -145,5 +147,7 @@ std::ostream& operator<<(std::ostream& out, const QPointF p);
 
 // Compute the length of a road
 float computePathLength(const QVector<QPointF>& segments);
+// Compute the length between the 2 endpoints of a road
+float computeStraightLength(const QVector<QPointF>& segments);
 
 #endif // STREETGRAPH_H

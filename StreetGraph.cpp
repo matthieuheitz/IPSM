@@ -338,6 +338,10 @@ Node& StreetGraph::growRoad(Road& road, Node& startNode, bool growInMajorDirecti
         preventInfiniteLoop++;
     }
 
+    // Fill road lengths
+    road.pathLength = computePathLength(road.segments);
+    road.straightLength = computeStraightLength(road.segments);
+
     // Connect Nodes and Roads
     Node& node2 = mNodes[++mLastNodeID];
     node2.ID = mLastNodeID;
@@ -565,4 +569,9 @@ float computePathLength(const QVector<QPointF>& segments)
         length += QVector2D(segments[i]-segments[i-1]).length();
     }
     return length;
+}
+
+float computeStraightLength(const QVector<QPointF>& segments)
+{
+    return QVector2D(segments[0]-segments[segments.size()-1]).length();
 }
