@@ -71,7 +71,11 @@ public:
     // 2 : Checks for segments being too long. Replants seeds
     // 3 : Seeds grow in both directions
 
+    // Grow a road until it leaves the field, is too long, or other stopping condition
     Node& growRoad(Road& road, Node& startNode, bool growInMajorDirection, bool growInOppositeDirection, bool useExceedLenStopCond);
+
+    // Grow a road and connects it to the first road it crosses
+    Node& growRoadAndConnect(Road& road, Node& startNode, bool growInMajorDirection, bool growInOppositeDirection, bool useExceedLenStopCond);
 
     // Draw an image with major hyperstreamlines
     QPixmap drawStreetGraph(bool showNodes, bool showSeeds);
@@ -110,6 +114,12 @@ private:
     bool exceedingLengthStoppingCondition(const QVector<QPointF>& segments);
     // 5th condition: Too close to other hyperstreamline
     bool exceedingDensityStoppingCondition();
+    // Check if road is meeting another one. Find the closest point of the met road
+    bool meetsAnotherRoad(Road &road, int &intersectedRoadID, int &closestPointID, float minDistance);
+    // Check if road is meeting another one. Find the intersection of the two meeting road.
+    // The intersection isn't necessarily a point of the met road, unlike in meetsAnotherRoad().
+    bool meetsAnotherRoadAndFindIntersection(int roadID, QPointF nextPosition, int &intersectedRoadID,
+                            int &closestPointID, QPointF &intersectionPoint);
 
 
     // Tensor field
@@ -149,5 +159,13 @@ std::ostream& operator<<(std::ostream& out, const QPointF p);
 float computePathLength(const QVector<QPointF>& segments);
 // Compute the length between the 2 endpoints of a road
 float computeStraightLength(const QVector<QPointF>& segments);
+// Compute det(AB, AM) which determines if M is in, on the left,
+// or on the right of AB
+float detPointLine(QPointF A, QPointF B, QPointF M);
+// Compute determinant of V1 and V2 (2x2 matrix)
+float det2D(QPointF V1, QPointF V2);
+// Find the intersection point between segments AB and CD.
+// If there isn't, a null QPointF is returned
+QPointF computeIntersectionPoint(QPointF A, QPointF B, QPointF C, QPointF D);
 
 #endif // STREETGRAPH_H

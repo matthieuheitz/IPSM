@@ -274,8 +274,9 @@ void StreetGraph::computeStreetGraph3(bool clearStorage)
         road2.type = Principal;
         road2.nodeID1 = mLastNodeID;
 
-        growRoad(road, node1, majorGrowth, false, false);
-        growRoad(road2, node1, majorGrowth, true, false);
+        bool useExceedLength = false;
+        growRoadAndConnect(road, node1, majorGrowth, false, useExceedLength);
+        growRoadAndConnect(road2, node1, majorGrowth, true, useExceedLength);
 
         majorGrowth = !majorGrowth;
     }
@@ -360,6 +361,135 @@ Node& StreetGraph::growRoad(Road& road, Node& startNode, bool growInMajorDirecti
         }
     }
     return node2;
+}
+
+Node& StreetGraph::growRoadAndConnect(Road& road, Node& startNode, bool growInMajorDirection,
+                            bool growInOppositeDirection, bool useExceedLenStopCond)
+{
+    // Grow a road starting from this node using the tensor eigen vector
+    // until one of the condition is reached
+    float step = mRegionSize.height()/100.0f; // Should be function of curvature
+    QSize fieldSize = mTensorField->getFieldSize();
+
+    // The road contains also the position of its extreme nodes
+    // Start from the node position
+    QPointF currentPosition = startNode.position;
+    // Road meeting
+    bool meetOtherRoad = false;
+    int metRoadID, closestPointID;
+    QPointF intersectionPoint;
+    // Holds wether road stopped because it was too long or not
+    bool tooLong = false;
+    bool stopGrowth = false;
+    int preventInfiniteLoop = 0;
+    while(!stopGrowth && preventInfiniteLoop < 1000)
+    {
+        QVector2D currentDirection;
+        if(preventInfiniteLoop != 0)
+        {
+            currentDirection = QVector2D(currentPosition-road.segments.last());
+        }
+        road.segments.push_back(currentPosition);
+        int i = round((currentPosition.y()-mBottomLeft.y())/mRegionSize.height()*
+                    (fieldSize.height()-1));
+        int j = round((currentPosition.x()-mBottomLeft.x())/mRegionSize.width()*
+                    (fieldSize.width()-1));
+        QVector2D majorDirection;
+        if(growInMajorDirection)
+        {
+            majorDirection = mTensorField->getMajorEigenVector(i,j);
+        }
+        else
+        {
+            majorDirection = mTensorField->getMinorEigenVector(i,j);
+        }
+        // First condition is to not grow backwards
+        // Second condition is applicable only at the beginning.
+        // It allows to grow the road in the 2 opposite directions
+        if(QVector2D::dotProduct(majorDirection,currentDirection) < 0
+                || (preventInfiniteLoop == 0 && growInOppositeDirection))
+        {
+            majorDirection *= -1;
+        }
+        QPointF nextPosition = currentPosition + (step*majorDirection).toPointF();
+        if(useExceedLenStopCond)
+        {
+            tooLong = exceedingLengthStoppingCondition(road.segments);
+        }
+        meetOtherRoad = meetsAnotherRoadAndFindIntersection(road.ID, nextPosition, metRoadID,
+                                                            closestPointID, intersectionPoint);
+        stopGrowth = boundaryStoppingCondition(nextPosition)
+                  || degeneratePointStoppingCondition(i,j)
+                  || loopStoppingCondition(nextPosition,road.segments)
+                  || tooLong
+                  || meetOtherRoad;
+        currentPosition = nextPosition;
+        preventInfiniteLoop++;
+    }
+
+    // Connect Nodes and Roads
+    if(meetOtherRoad)
+    {
+        Road &metRoad = mRoads[metRoadID];
+        int secondNodeID = -1;
+        if(closestPointID == 0)
+        {
+            road.nodeID2 = metRoad.nodeID1;
+            secondNodeID = metRoad.nodeID1;
+            startNode.connectedNodeIDs.push_back(metRoad.nodeID1);
+        }
+        else if(closestPointID == metRoad.segments.size()-1)
+        {
+            road.nodeID2 = metRoad.nodeID2;
+            secondNodeID = metRoad.nodeID2;
+            startNode.connectedNodeIDs.push_back(metRoad.nodeID2);
+        }
+        else
+        {
+            Node& node2 = mNodes[++mLastNodeID];
+            node2.ID = mLastNodeID;
+//            node2.position = metRoad.segments[closestPointID];
+            node2.position = intersectionPoint;
+            node2.connectedNodeIDs.push_back(startNode.ID);
+            node2.connectedRoadIDs.push_back(road.ID);
+            road.segments.push_back(node2.position);
+            road.nodeID2 = startNode.ID;
+            startNode.connectedNodeIDs.push_back(node2.ID);
+            secondNodeID = node2.ID;
+            // TODO: Separate the crossed road in 2, and reconnect everything
+        }
+
+        // Fill road lengths
+        road.pathLength = computePathLength(road.segments);
+        road.straightLength = computeStraightLength(road.segments);
+
+        return mNodes[secondNodeID];
+    }
+    else
+    {
+        // Create a new node on last point of the road
+        Node& node2 = mNodes[++mLastNodeID];
+        node2.ID = mLastNodeID;
+        node2.position = road.segments.last();
+        node2.connectedNodeIDs.push_back(startNode.ID);
+        node2.connectedRoadIDs.push_back(road.ID);
+        startNode.connectedNodeIDs.push_back(node2.ID);
+        road.nodeID2 = node2.ID;
+
+        if(tooLong)
+        {
+            // Replant a seed only if it's not too close from another seed
+            if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation/4.0f))
+            {
+                mSeeds.push_back(node2.position);
+            }
+        }
+        // Fill road lengths
+        road.pathLength = computePathLength(road.segments);
+        road.straightLength = computeStraightLength(road.segments);
+
+        return node2;
+    }
 }
 
 
@@ -454,6 +584,95 @@ QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
     }
     emit newStreetGraphImage(QPixmap::fromImage(pixmap));
     return QPixmap::fromImage(pixmap);
+}
+
+bool StreetGraph::meetsAnotherRoad(Road &road, int &intersectedRoadID, int &closestPointID, float minDistance)
+{
+    QPointF roadEnd = road.segments.last();
+    for(int i=0 ; i<mRoads.size() ; i++)
+    {
+        const QVector<QPointF>& currentSegments = mRoads[i].segments;
+        if((&(mRoads[i]) != &road) && currentSegments.size() !=0)
+        {
+            //1st check: If the point is farther than mDistSeparation
+            // from both ends, it can't intersect
+            if(QVector2D(roadEnd - currentSegments.first()).length() > mDistSeparation
+               && QVector2D(roadEnd - currentSegments.last()).length() > mDistSeparation)
+            {
+                intersectedRoadID = -1;
+                closestPointID = -1;
+                return false;
+            }
+            else
+            {
+                // 2nd check: If the last point is as close as the minimal distance
+                // from the road, consider that it meets the road.
+                // Returns the road ID
+                for(int j=0 ; j<currentSegments.size() ; j++)
+                {
+                    // If taking the first closest one doesn't produce good results,
+                    // finish the loop and take the minimum
+                    if(QVector2D(roadEnd - currentSegments[j]).length() < minDistance)
+                    {
+                        intersectedRoadID = i;
+                        closestPointID = j;
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool StreetGraph::meetsAnotherRoadAndFindIntersection(int roadID, QPointF nextPosition, int &intersectedRoadID,
+                                                      int &closestPointID, QPointF &intersectionPoint)
+{
+    QPointF roadEnd = mRoads[roadID].segments.last();
+    for(int i=0 ; i<mRoads.size() ; i++)
+    {
+        // To make it faster, first check something like :
+//        if(QVector2D(roadEnd - currentSegments.first()).length() > mDistSeparation
+//           && QVector2D(roadEnd - currentSegments.last()).length() > mDistSeparation)
+        const QVector<QPointF>& currentSegments = mRoads[i].segments;
+        bool isConnectedRoad = false;
+        QVector<int>& connectedRoadIDs = mNodes[mRoads[roadID].nodeID1].connectedRoadIDs;
+        for(int k=0 ; k<connectedRoadIDs.size() ; k++)
+        {
+            isConnectedRoad = isConnectedRoad || (i == connectedRoadIDs[k]);
+        }
+        // If road isn't the one passed, or one connected to it
+        if(i != roadID && !isConnectedRoad && currentSegments.size() != 0 )
+        {
+            for(int j=1 ; j<currentSegments.size() ; j++)
+            {
+                // Find on which side of the current segments, the 2 points are
+                float sideOfLast = detPointLine(currentSegments[j-1], currentSegments[j], roadEnd);
+                float sideOfNext = detPointLine(currentSegments[j-1], currentSegments[j], nextPosition);
+                if(isFuzzyNull(sideOfNext))
+                {
+                    intersectionPoint = nextPosition;
+                }
+                // If road end point and next point are on different sides of the road
+                if(sideOfLast*sideOfNext < 0.0f)
+                {
+                    // If taking the first closest one doesn't produce good results,
+                    // finish the loop and take the minimum
+                    QPointF intersection = computeIntersectionPoint(currentSegments[j-1], currentSegments[j], roadEnd, nextPosition);
+                    if(!intersection.isNull())
+                    {
+                        intersectedRoadID = i;
+                        closestPointID = j;
+                        intersectionPoint = intersection;
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    intersectedRoadID = -1;
+    closestPointID = -1;
+    return false;
 }
 
 void StreetGraph::drawRoads(QPainter& painter, QSize imageSize)
@@ -574,4 +793,38 @@ float computePathLength(const QVector<QPointF>& segments)
 float computeStraightLength(const QVector<QPointF>& segments)
 {
     return QVector2D(segments[0]-segments[segments.size()-1]).length();
+}
+
+float det2D(QPointF V1, QPointF V2)
+{
+    return V1.x()*V2.y() - V1.y()*V2.x();
+}
+
+float detPointLine(QPointF A, QPointF B, QPointF M)
+{
+    return det2D(B-A,M-A);
+}
+
+QPointF computeIntersectionPoint(QPointF A, QPointF B, QPointF C, QPointF D)
+{
+    QPointF out;
+    float denominator = det2D(B-A,D-C);
+    if(isFuzzyNull(denominator))
+    {
+        return QPointF();
+    }
+    else
+    {
+        out.setX(det2D(QPointF(det2D(A,B),det2D(C,D)),QPointF(A.x()-B.x(),C.x()-D.x())));
+        out.setY(det2D(QPointF(det2D(A,B),det2D(C,D)),QPointF(A.y()-B.y(),C.y()-D.y())));
+        out /= denominator;
+        if(QPointF::dotProduct(out-A,B-A) > 0 && QPointF::dotProduct(out-B,A-B) > 0)
+        {
+            return out;
+        }
+        else
+        {
+            return QPointF();
+        }
+    }
 }
