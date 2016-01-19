@@ -63,23 +63,24 @@ void StreetGraph::createDensityConstrainedSeedList(int numberOfSeeds, bool appen
     }
 }
 
-void StreetGraph::createGridSeedList(QSize numberOfSeeds, bool append)
+int StreetGraph::createGridSeedList(double separationDistance, bool append)
 {
     if(!append)
     {
         mSeeds.clear();
     }
-    float dv = mRegionSize.height()/(float)numberOfSeeds.height();
-    float du = mRegionSize.width()/(float)numberOfSeeds.width();
-    QPointF origin(du/2.0f, dv/2.0f);
-    for(int i=0 ; i<numberOfSeeds.height() ; i++)
+    int Nv = (int)(mRegionSize.height()/separationDistance);
+    int Nu = (int)(mRegionSize.width()/separationDistance);
+    QPointF origin(separationDistance/2.0f,separationDistance/2.0f);
+    for(int i=0 ; i<Nv ; i++)
     {
-        for(int j=0 ; j<numberOfSeeds.width() ; j++)
+        for(int j=0 ; j<Nu ; j++)
         {
-            QPointF position = origin + QPointF(j*dv, i*du);
+            QPointF position = origin + QPointF(j*separationDistance, i*separationDistance);
             mSeeds.push_back(position);
         }
     }
+    return Nv*Nu;
 }
 
 void StreetGraph::generateSeedListWithUIMethod()
@@ -87,7 +88,7 @@ void StreetGraph::generateSeedListWithUIMethod()
     switch(mSeedInitMethod)
     {
     case 0:
-        createGridSeedList(QSize(10,10),false);
+        createGridSeedList(mSeparationDistance,false);
         break;
     case 1:
         createRandomSeedList(50, false);

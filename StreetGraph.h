@@ -52,7 +52,7 @@ public:
     void createDensityConstrainedSeedList(int numberOfSeeds, bool append);
 
     // Create a list of seeds spread in a grid pattern on the region
-    void createGridSeedList(QSize numberOfSeeds, bool append);
+    int createGridSeedList(double separationDistance, bool append);
 
     // Create a list of seeds following the method asked by the user in the UI
     void generateSeedListWithUIMethod();
