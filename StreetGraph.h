@@ -52,7 +52,7 @@ public:
     void createDensityConstrainedSeedList(int numberOfSeeds, bool append);
 
     // Create a list of seeds spread in a grid pattern on the region
-    void createGridSeedList(QSize numberOfSeeds, bool append);
+    int createGridSeedList(double separationDistance, bool append);
 
     // Create a list of seeds following the method asked by the user in the UI
     void generateSeedListWithUIMethod();
@@ -101,6 +101,10 @@ public slots:
     void generateStreetGraph();
     // Change method to initialize seeds
     void changeSeedInitMethod(int index) {mSeedInitMethod = index;}
+    // Set the variable for drawing nodes or not
+    void setDrawNodes(bool drawNodes);
+    // Set the density variable
+    void setSeparationDistance(double separationDistance);
 
 private:
 
@@ -140,11 +144,13 @@ private:
     int mLastNodeID;
     int mLastRoadID;
     // Distance for road density
-    float mDistSeparation;
+    float mSeparationDistance;
     // Watermap
     QImage mWatermap;
     // Method to use for seed initialization
     int mSeedInitMethod;
+    // Holds if nodes should be drawn in the street graph image
+    bool mDrawNodes;
 
 };
 

@@ -8,13 +8,14 @@
 #include "StreetGraph.h"
 
 StreetGraph::StreetGraph(QPointF bottomLeft, QPointF topRight, TensorField *field, float distSeparation, QObject *parent) :
-    QObject(parent), mTensorField(field), mBottomLeft(bottomLeft), mTopRight(topRight), mDistSeparation(distSeparation)
+    QObject(parent), mTensorField(field), mBottomLeft(bottomLeft), mTopRight(topRight), mSeparationDistance(distSeparation)
 {
     mRegionSize.rwidth() = (topRight-bottomLeft).x();
     mRegionSize.rheight() = (topRight-bottomLeft).y();
     mLastNodeID = 0;
     mLastRoadID = 0;
     mSeedInitMethod = 0;
+    mDrawNodes = false;
 }
 
 void StreetGraph::createRandomSeedList(int numberOfSeeds, bool append)
@@ -52,7 +53,7 @@ void StreetGraph::createDensityConstrainedSeedList(int numberOfSeeds, bool appen
             float randY = qrand()/(float)RAND_MAX;
             seed = QPointF(mBottomLeft.x() + randX*mRegionSize.width(),
                          mBottomLeft.y() + randY*mRegionSize.height());
-            pointIsValid = pointRespectSeedSeparationDistance(seed,mDistSeparation);
+            pointIsValid = pointRespectSeedSeparationDistance(seed,mSeparationDistance);
             counter++;
         }
         if(pointIsValid)
@@ -62,23 +63,24 @@ void StreetGraph::createDensityConstrainedSeedList(int numberOfSeeds, bool appen
     }
 }
 
-void StreetGraph::createGridSeedList(QSize numberOfSeeds, bool append)
+int StreetGraph::createGridSeedList(double separationDistance, bool append)
 {
     if(!append)
     {
         mSeeds.clear();
     }
-    float dv = mRegionSize.height()/(float)numberOfSeeds.height();
-    float du = mRegionSize.width()/(float)numberOfSeeds.width();
-    QPointF origin(du/2.0f, dv/2.0f);
-    for(int i=0 ; i<numberOfSeeds.height() ; i++)
+    int Nv = (int)(mRegionSize.height()/separationDistance);
+    int Nu = (int)(mRegionSize.width()/separationDistance);
+    QPointF origin(separationDistance/2.0f,separationDistance/2.0f);
+    for(int i=0 ; i<Nv ; i++)
     {
-        for(int j=0 ; j<numberOfSeeds.width() ; j++)
+        for(int j=0 ; j<Nu ; j++)
         {
-            QPointF position = origin + QPointF(j*dv, i*du);
+            QPointF position = origin + QPointF(j*separationDistance, i*separationDistance);
             mSeeds.push_back(position);
         }
     }
+    return Nv*Nu;
 }
 
 void StreetGraph::generateSeedListWithUIMethod()
@@ -86,7 +88,7 @@ void StreetGraph::generateSeedListWithUIMethod()
     switch(mSeedInitMethod)
     {
     case 0:
-        createGridSeedList(QSize(10,10),false);
+        createGridSeedList(mSeparationDistance,false);
         break;
     case 1:
         createRandomSeedList(50, false);
@@ -290,7 +292,7 @@ void StreetGraph::computeStreetGraph3(bool clearStorage)
         majorGrowth = !majorGrowth;
 
         // Draw each time a road is added
-        drawStreetGraph(true, false);
+        drawStreetGraph(mDrawNodes, false);
         QCoreApplication::processEvents();
     }
 }
@@ -368,7 +370,7 @@ Node& StreetGraph::growRoad(Road& road, Node& startNode, bool growInMajorDirecti
     if(tooLong)
     {
         // Replant a seed only if it's not too close from another seed
-        if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation/4.0f))
+        if(pointRespectSeedSeparationDistance(road.segments.last(),mSeparationDistance/4.0f))
         {
             mSeeds.push_back(node2.position);
         }
@@ -492,7 +494,7 @@ Node& StreetGraph::growRoadAndConnect(Road& road, Node& startNode, bool growInMa
         if(tooLong)
         {
             // Replant a seed only if it's not too close from another seed
-            if(pointRespectSeedSeparationDistance(road.segments.last(),mDistSeparation/4.0f))
+            if(pointRespectSeedSeparationDistance(road.segments.last(),mSeparationDistance/4.0f))
             {
                 mSeeds.push_back(node2.position);
             }
@@ -512,7 +514,7 @@ void StreetGraph::generateStreetGraph()
     computeStreetGraph3(true);
 //    computeMajorHyperstreamlines(true);
 
-    drawStreetGraph(true, false);
+    drawStreetGraph(mDrawNodes, false);
 }
 
 QPixmap StreetGraph::drawStreetGraph(bool showNodes, bool showSeeds)
@@ -609,8 +611,8 @@ bool StreetGraph::meetsAnotherRoad(Road &road, int &intersectedRoadID, int &clos
         {
             //1st check: If the point is farther than mDistSeparation
             // from both ends, it can't intersect
-            if(QVector2D(roadEnd - currentSegments.first()).length() > mDistSeparation
-               && QVector2D(roadEnd - currentSegments.last()).length() > mDistSeparation)
+            if(QVector2D(roadEnd - currentSegments.first()).length() > mSeparationDistance
+               && QVector2D(roadEnd - currentSegments.last()).length() > mSeparationDistance)
             {
                 intersectedRoadID = -1;
                 closestPointID = -1;
@@ -718,6 +720,20 @@ void StreetGraph::clearStoredStreetGraph()
     mLastRoadID = 0;
 }
 
+void StreetGraph::setDrawNodes(bool drawNodes)
+{
+    if(drawNodes != mDrawNodes)
+    {
+        mDrawNodes = drawNodes;
+        drawStreetGraph(mDrawNodes,false);
+    }
+}
+
+void StreetGraph::setSeparationDistance(double separationDistance)
+{
+    mSeparationDistance = separationDistance;
+}
+
 bool StreetGraph::boundaryStoppingCondition(QPointF nextPosition)
 {
     if(nextPosition.x() <= mBottomLeft.x()
@@ -753,7 +769,7 @@ bool StreetGraph::loopStoppingCondition(QPointF nextPosition, const QVector<QPoi
 
 bool StreetGraph::exceedingLengthStoppingCondition(const QVector<QPointF>& segments)
 {
-    if(computePathLength(segments) > mDistSeparation)
+    if(computePathLength(segments) > mSeparationDistance)
     {
         return true;
     }
