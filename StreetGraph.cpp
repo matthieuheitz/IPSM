@@ -193,9 +193,11 @@ void StreetGraph::computeStreetGraph(bool clearStorage)
         // Grow a road starting from this node using the tensor eigen vector
         // until one of the condition is reached
         Node& node1 = mNodes[++mLastNodeID];
+        node1.ID = mLastNodeID;
         node1.position = mSeeds[k];
 
         Road& road = mRoads[++mLastRoadID];
+        road.ID = mLastRoadID;
         node1.connectedRoadIDs.push_back(mLastRoadID);
         road.type = Principal;
         road.nodeID1 = mLastNodeID;
@@ -225,9 +227,11 @@ void StreetGraph::computeStreetGraph2(bool clearStorage)
         // Grow a road starting from this node using the tensor eigen vector
         // until one of the condition is reached
         Node& node1 = mNodes[++mLastNodeID];
+        node1.ID = mLastNodeID;
         node1.position = mSeeds[k];
 
         Road& road = mRoads[++mLastRoadID];
+        road.ID = mLastRoadID;
         node1.connectedRoadIDs.push_back(mLastRoadID);
         road.type = Principal;
         road.nodeID1 = mLastNodeID;
@@ -255,14 +259,17 @@ void StreetGraph::computeStreetGraph3(bool clearStorage)
     {
         // Create a node
         Node& node1 = mNodes[++mLastNodeID];
+        node1.ID = mLastNodeID;
         node1.position = mSeeds[k];
 
         Road& road = mRoads[++mLastRoadID];
+        road.ID = mLastRoadID;
         node1.connectedRoadIDs.push_back(mLastRoadID);
         road.type = Principal;
         road.nodeID1 = mLastNodeID;
 
         Road& road2 = mRoads[++mLastRoadID];
+        road2.ID = mLastRoadID;
         node1.connectedRoadIDs.push_back(mLastRoadID);
         road2.type = Principal;
         road2.nodeID1 = mLastNodeID;
@@ -333,10 +340,12 @@ Node& StreetGraph::growRoad(Road& road, Node& startNode, bool growInMajorDirecti
 
     // Connect Nodes and Roads
     Node& node2 = mNodes[++mLastNodeID];
-    startNode.connectedNodeIDs.push_back(mLastNodeID);
+    node2.ID = mLastNodeID;
     node2.position = road.segments.last();
-    node2.connectedNodeIDs.push_back(mLastNodeID-1);
-    node2.connectedRoadIDs.push_back(mLastRoadID);
+    node2.connectedNodeIDs.push_back(startNode.ID);
+    node2.connectedRoadIDs.push_back(road.ID);
+    startNode.connectedNodeIDs.push_back(node2.ID);
+    road.nodeID2 = node2.ID;
 
     if(tooLong)
     {

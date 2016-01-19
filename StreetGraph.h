@@ -17,6 +17,7 @@ enum RoadType {
 
 // Structure to store a road
 struct Road {
+    int ID;
     QVector<QPointF> segments;
     int nodeID1;
     int nodeID2;
@@ -25,6 +26,7 @@ struct Road {
 
 // Structure to store an intersection (node)
 struct Node {
+    int ID;
     QPointF position;
     QVector<int> connectedNodeIDs;
     QVector<int> connectedRoadIDs;
