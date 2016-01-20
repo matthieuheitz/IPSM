@@ -47,6 +47,7 @@ public:
     // Changes the stored tensor field and put tensor to null
     // in areas where there is water
     void applyWaterMap(QString filename);
+    void applyBoundaries(QString filename);
     // Generate a grid basis field from a 2D vector
     // Don't normalize the vector as this function
     // integrates the vector's norm in the tensor
