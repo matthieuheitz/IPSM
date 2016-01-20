@@ -111,6 +111,7 @@ public slots:
     void generateGridTensorFieldLocal();
     // Generates a tensor field from a heightmap
     void generateHeightmapTensorField();
+    void generateHeightmapTensorFieldLocal();
     // Generates a multi-rotation tensor field (linear variation)
     void generateMultiRotationTensorField();
     void generateMultiRotationTensorFieldLocal();

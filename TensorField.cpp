@@ -481,6 +481,19 @@ void TensorField::generateHeightmapTensorField()
     this->exportEigenVectorsImage(true, true);
 }
 
+void TensorField::generateHeightmapTensorFieldLocal()
+{
+    QString filename = QFileDialog::getOpenFileName(0, QString("Open Image"));
+    if(filename.isEmpty())
+    {
+        return;
+    }
+    this->fillHeightBasisFieldLocal(filename, QPointF(0.2f,0.3f), 0.0f);
+
+    this->computeTensorsEigenDecomposition();
+    this->exportEigenVectorsImage(true, true);
+}
+
 void TensorField::generateMultiRotationTensorField()
 {
     this->fillRotatingField();
