@@ -52,20 +52,25 @@ public:
     // Don't normalize the vector as this function
     // integrates the vector's norm in the tensor
     void fillGridBasisField(QVector2D direction);
+    void fillGridBasisFieldLocal(float theta, float l, QPointF center, float decay);
     // Generate a grid basis function from an angle and an amplitude.
     // There is no direction, so theta and theta + pi give the same result
     void fillGridBasisField(float theta, float l);
     // Generate a heightmap basis function from a filename
     void fillHeightBasisField(QString filename);
+    void fillHeightBasisFieldLocal(QString filename, QPointF center, float decay);
     // Same thing, using a sobel filter to approximate the gradient
     void fillHeightBasisFieldSobel(QString filename);
+    void fillHeightBasisFieldSobelLocal(QString filename,QPointF center, float decay);
     // Generate a radial basis field
     // The center coordinates must be in [0,1], considering that
     // The bottom left corner of the image is (0,0) and bottom right
     // corner is (1,0)
     void fillRadialBasisField(QPointF center);
+    void fillRadialBasisFieldLocal(QPointF center, float decay);
     // Test function to check the different angles
     void fillRotatingField();
+    void fillRotatingFieldLocal(QPointF center, float decay);
 
     // Output the tensor field to QDebug
     void outputTensorField();
@@ -103,12 +108,15 @@ public slots:
     void actionAddWatermap();
     // Generates a grid tensor field with default parameters
     void generateGridTensorField();
+    void generateGridTensorFieldLocal();
     // Generates a tensor field from a heightmap
     void generateHeightmapTensorField();
     // Generates a multi-rotation tensor field (linear variation)
     void generateMultiRotationTensorField();
+    void generateMultiRotationTensorFieldLocal();
     // Generates a radial tensor field with default parameters
     void generateRadialTensorField();
+    void generateRadialTensorFieldLocal();
     // Compute the eigen vectors and values of each tensor in the field,
     // and store them internally.
     // Return the number of degenerate points (null eigenvectors)
