@@ -123,6 +123,7 @@ public slots:
     int computeTensorsEigenDecomposition();
     // Tensor field smoothing using a Gaussian filter
     void smoothTensorField();
+    void resetTensorField();
 
 private:
 

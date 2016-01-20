@@ -512,6 +512,20 @@ void TensorField::generateRadialTensorFieldLocal()
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
 }
+
+void TensorField::resetTensorField()
+{
+    mData = QVector<QVector<QVector4D> >();
+    mData.resize(mFieldSize.height());
+    for(int i=0 ; i < mFieldSize.height() ; i++)
+    {
+        mData[i].resize(mFieldSize.width());
+    }
+    mFieldIsFilled = false;
+    mEigenIsComputed = false;
+    mWaterMapIsLoaded = false;
+}
+
 void TensorField::outputTensorField()
 {
     for(int i=0; i<mFieldSize.height() ; i++)
