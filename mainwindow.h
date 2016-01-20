@@ -25,12 +25,14 @@ protected:
 
 private slots:
     void displayVectorFieldImage(QPixmap image);
+    void updateTFState();
 
 private:
     Ui::MainWindow *ui;
     TensorField * mTensorField;
     QSize mTensorFieldSize;
     StreetGraph * mStreetGraph;
+    bool mTensorFieldIsGlobal;
 };
 
 #endif // MAINWINDOW_H
