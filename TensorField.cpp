@@ -510,7 +510,7 @@ QVector4D getTensorEigenVectors(QVector4D tensor)
     Eigen::EigenSolver<Eigen::Matrix2f> es(m);
     QVector2D vec1(es.eigenvectors().col(0).real()[0],es.eigenvectors().col(0).real()[1]);
     QVector2D vec2(es.eigenvectors().col(1).real()[0],es.eigenvectors().col(1).real()[1]);
-    QVector2D val = getTensorEigenValues(tensor);
+    QVector2D val(es.eigenvalues()[0].real(),es.eigenvalues()[1].real());
     if(isFuzzyEqual(val.x(), fmax(val.x(),val.y())))
     {
         return QVector4D(vec1.x(), vec1.y(),vec2.x(), vec2.y());
