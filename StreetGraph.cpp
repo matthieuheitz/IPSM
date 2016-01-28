@@ -493,11 +493,7 @@ Node& StreetGraph::growRoadAndConnect(Road& road, Node& startNode, bool growInMa
 
         if(tooLong)
         {
-            // Replant a seed only if it's not too close from another seed
-            if(pointRespectSeedSeparationDistance(road.segments.last(),mSeparationDistance/4.0f))
-            {
                 mSeeds.push_back(node2.position);
-            }
         }
         // Fill road lengths
         road.pathLength = computePathLength(road.segments);
