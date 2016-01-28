@@ -285,7 +285,7 @@ void StreetGraph::computeStreetGraph3(bool clearStorage)
         road2.type = Principal;
         road2.nodeID1 = mLastNodeID;
 
-        bool useExceedLength = false;
+        bool useExceedLength = true;
         growRoadAndConnect(road, node1, majorGrowth, false, useExceedLength);
         growRoadAndConnect(road2, node1, majorGrowth, true, useExceedLength);
 
