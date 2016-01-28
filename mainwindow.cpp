@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->comboBoxSeedInit->addItem("Regular Grid");
     ui->comboBoxSeedInit->addItem("Random distribution");
-    ui->comboBoxSeedInit->addItem("Poisson distribution");
+    ui->comboBoxSeedInit->addItem("Controlled random distribution");
 
     ui->spinBoxDensity->setRange(0, 100);
     ui->spinBoxDensity->setValue(separationDistance);
