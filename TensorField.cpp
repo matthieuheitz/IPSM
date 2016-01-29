@@ -71,37 +71,101 @@ void TensorField::applyWaterMap(QString filename)
     mWaterMapIsLoaded = true;
 }
 
-void TensorField::fillGridBasisField(float theta, float l)
+void TensorField::applyBoundaries(QString filename)
 {
-    for(int i=0; i<mFieldSize.height() ; i++)
+    QImage waterMap = QImage(filename);
+    if(waterMap.isNull())
     {
-        for(int j=0; j<mFieldSize.width() ; j++)
+        qCritical()<<"applyWaterMap(): File "<<filename<<" not found";
+        return;
+    }
+    if(waterMap.size() != mFieldSize)
+    {
+        qCritical()<<"applyWaterMap(): Watermap must be of same size as the tensor field";
+        return;
+    }
+    QImage mapSobelX, mapSobelY;
+    QColor pixSobelX, pixSobelY;
+    float theta, r;
+
+    mapSobelX = applySobelX(waterMap);
+    mapSobelY = applySobelY(waterMap);
+
+    for(int i=0; i<mFieldSize.width()-1 ; i++)
+    {
+        for(int j=0; j<mFieldSize.height()-1 ; j++)
         {
             QVector4D tensor;
+
+            pixSobelX = mapSobelX.pixel(j,i);
+            pixSobelY = mapSobelY.pixel(j,i);
+
+            theta = std::atan2(abs(pixSobelY.blue()),abs(pixSobelX.blue()))+ M_PI/2.0;
+            r = std::sqrt(std::pow(pixSobelY.blue(),2.0) + std::pow(pixSobelX.blue(),2.0));
+
             tensor.setX(cos(2.0*theta));
             tensor.setY(sin(2.0*theta));
             tensor.setZ(sin(2.0*theta));
             tensor.setW(-cos(2.0*theta));
-            tensor *= l;
-            mData[i][j] = tensor;
+            tensor *= r;
+
+            if (!tensor.isNull()){
+                mData[mFieldSize.width() -1 -i][j] += tensor;
+                if (j<mFieldSize.height()-2 && j>0 && i<mFieldSize.width()-2 && i>0){
+                    mData[mFieldSize.width() -i][j] += tensor;
+                    mData[mFieldSize.width() -1 -i][j+1] += tensor;
+                    mData[mFieldSize.width() -2 -i][j] += tensor;
+                    mData[mFieldSize.width() -1 -i][j-1] += tensor;
+                    mData[mFieldSize.width() -i][j+1] += tensor;
+                    mData[mFieldSize.width() -2 -i][j+1] += tensor;
+                    mData[mFieldSize.width() -2 -i][j-1] += tensor;
+                    mData[mFieldSize.width() -i][j-1] += tensor;
+                }
+            }
         }
     }
     mFieldIsFilled = true;
 }
 
-void TensorField::fillRotatingField()
+void TensorField::fillGridBasisField(float theta, float l, QPointF center, float decay)
 {
+    float x;
+    float y;
+    for(int i=0; i<mFieldSize.height() ; i++)
+    {
+        for(int j=0; j<mFieldSize.width() ; j++)
+        {
+            QVector4D tensor;
+            x = ((float)j/(mFieldSize.height()-1) - center.x());
+            y = ((float)i/(mFieldSize.width()-1) - center.y());
+            tensor.setX(cos(2.0*theta));
+            tensor.setY(sin(2.0*theta));
+            tensor.setZ(sin(2.0*theta));
+            tensor.setW(-cos(2.0*theta));
+            tensor *= l;
+            mData[i][j] += (1.0-std::exp(-decay*(std::pow(x,2.0)+std::pow(y,2.0))))*tensor;
+        }
+    }
+    mFieldIsFilled = true;
+}
+
+void TensorField::fillRotatingField(QPointF center, float decay)
+{
+    float x;
+    float y;
     for(int i=0; i<mFieldSize.height() ; i++)
     {
         for(int j=0; j<mFieldSize.width() ; j++)
         {
             float theta = M_PI*j/(mFieldSize.width()-1) + i*M_PI/4/(mFieldSize.height()-1);
             QVector4D tensor;
+            x = ((float)j/(mFieldSize.height()-1) - center.x());
+            y = ((float)i/(mFieldSize.width()-1) - center.y());
             tensor.setX(cos(2.0*theta));
             tensor.setY(sin(2.0*theta));
             tensor.setZ(sin(2.0*theta));
             tensor.setW(-cos(2.0*theta));
-            mData[i][j] = tensor;
+            mData[i][j] += std::exp(-decay*(std::pow(x,2.0)+std::pow(y,2.0)))*tensor;
         }
     }
     mFieldIsFilled = true;
@@ -110,12 +174,14 @@ void TensorField::fillRotatingField()
 void TensorField::fillGridBasisField(QVector2D direction)
 {
     float theta = std::atan2(direction.y(),direction.x());
-    this->fillGridBasisField(theta, direction.length());
+    this->fillGridBasisField(theta, direction.length(), QPoint(0.2, 0.3), 0.1);
 }
 
-void TensorField::fillHeightBasisField(QString filename)
+void TensorField::fillHeightBasisField(QString filename, QPointF center, float decay)
 {
     QImage mHeightMap = QImage(filename);
+    float x;
+    float y;
     if(mHeightMap.isNull())
     {
         qCritical()<<"fillHeightBasisField(): File "<<filename<<" not found";
@@ -133,6 +199,8 @@ void TensorField::fillHeightBasisField(QString filename)
         for(int j=0; j<mFieldSize.width()-1 ; j++)
         {
             QVector4D tensor;
+            x = ((float)j/(mFieldSize.height()-1) - center.x());
+            y = ((float)i/(mFieldSize.width()-1) - center.y());
             currentPixel = mHeightMap.pixel(j,i);
             nextPixelHoriz = mHeightMap.pixel(j+1,i);
             nextPixelVert = mHeightMap.pixel(j,i+1);
@@ -155,16 +223,18 @@ void TensorField::fillHeightBasisField(QString filename)
                 tensor.setW(-cos(2.0*theta));
                 tensor *= r;
 
-                mData[mFieldSize.height()-1-i][j] = tensor;
+                mData[mFieldSize.height()-1-i][j] += std::exp(-decay*(std::pow(x,2.0)+std::pow(y,2.0)))*tensor;
             }
         }
     }
     mFieldIsFilled = true;
 }
 
-void TensorField::fillHeightBasisFieldSobel(QString filename)
+void TensorField::fillHeightBasisFieldSobel(QString filename,QPointF center, float decay)
 {
     QImage mHeightMap = QImage(filename);
+    float x;
+    float y;
     if(mHeightMap.isNull())
     {
         qCritical()<<"fillHeightBasisField(): File "<<filename<<" not found";
@@ -183,6 +253,9 @@ void TensorField::fillHeightBasisFieldSobel(QString filename)
         for(int j=0; j<mFieldSize.height()-1 ; j++)
         {
             QVector4D tensor;
+            x = ((float)j/(mFieldSize.height()-1) - center.x());
+            y = ((float)i/(mFieldSize.width()-1) - center.y());
+
             pixSobelX = mapSobelX.pixel(j,i);
             pixSobelY = mapSobelY.pixel(j,i);
 
@@ -194,13 +267,13 @@ void TensorField::fillHeightBasisFieldSobel(QString filename)
             tensor.setZ(sin(2.0*theta));
             tensor.setW(-cos(2.0*theta));
             tensor *= r;
-            mData[mFieldSize.width() -1 -i][j] = tensor;
+            mData[mFieldSize.width() -1 -i][j] += std::exp(-decay*(std::pow(x,2.0)+std::pow(y,2.0)))*tensor;
         }
     }
     mFieldIsFilled = true;
 }
 
-void TensorField::fillRadialBasisField(QPointF center)
+void TensorField::fillRadialBasisField(QPointF center, float decay)
 {
     float x;
     float y;
@@ -215,7 +288,7 @@ void TensorField::fillRadialBasisField(QPointF center)
             tensor.setY(-2*x*y);
             tensor.setZ(-2*x*y);
             tensor.setW(-(std::pow(y,2.0)-std::pow(x,2.0)));
-            mData[i][j] = tensor;
+            mData[i][j] += std::exp(-decay*(std::pow(x,2.0)+std::pow(y,2.0)))*tensor;
         }
     }
     mFieldIsFilled = true;
@@ -234,6 +307,7 @@ void TensorField::actionAddWatermap()
         return;
     }
     this->applyWaterMap(filename);
+    this->applyBoundaries(filename);
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
@@ -241,7 +315,7 @@ void TensorField::actionAddWatermap()
 
 void TensorField::generateGridTensorField()
 {
-    this->fillGridBasisField(M_PI/3, 1);
+    this->fillGridBasisField(M_PI/3, 0.01, QPointF(0.2, 0.3), 0.1);
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
@@ -254,7 +328,7 @@ void TensorField::generateHeightmapTensorField()
     {
         return;
     }
-    this->fillHeightBasisField(filename);
+    this->fillHeightBasisField(filename, QPointF(0.2, 0.3), 0.1);
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
@@ -262,7 +336,7 @@ void TensorField::generateHeightmapTensorField()
 
 void TensorField::generateMultiRotationTensorField()
 {
-    this->fillRotatingField();
+    this->fillRotatingField(QPointF(0.7, 0.3), 100.0);
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
@@ -270,7 +344,7 @@ void TensorField::generateMultiRotationTensorField()
 
 void TensorField::generateRadialTensorField()
 {
-    this->fillRadialBasisField(QPointF(0.5,0.5));
+    this->fillRadialBasisField(QPointF(0.2,0.3), 100.0);
 
     this->computeTensorsEigenDecomposition();
     this->exportEigenVectorsImage(true, true);
@@ -587,7 +661,6 @@ QImage applySobelX(QImage map)
             sobelX.setPixel(i,j,(sumMat3D(matrix,kernel)));
         }
     }
-    sobelX.save("testx.png");
     return sobelX;
 }
 
@@ -628,7 +701,6 @@ QImage applySobelY(QImage map)
             sobelY.setPixel(i,j,(sumMat3D(matrix,kernel)));
         }
     }
-    sobelY.save("testy.png");
     return sobelY;
 }
 
