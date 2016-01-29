@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mTensorFieldSize = QSize(32,32);
     mTensorField = new TensorField(mTensorFieldSize);
     mStreetGraph = new StreetGraph(QPointF(0,0), QPointF(100,100),mTensorField,separationDistance);
+    mTensorFieldIsGlobal = true;
 
     ui->comboBoxSeedInit->addItem("Regular Grid");
     ui->comboBoxSeedInit->addItem("Random distribution");
@@ -42,6 +43,12 @@ MainWindow::MainWindow(QWidget *parent) :
                      mStreetGraph, SLOT(setSeparationDistance(double)));
     QObject::connect(ui->comboBoxSeedInit, SIGNAL(currentIndexChanged(int)),
                      mStreetGraph, SLOT(changeSeedInitMethod(int)));
+    QObject::connect(ui->buttonResetTF, SIGNAL(clicked()),
+                     mTensorField, SLOT(resetTensorField()));
+    QObject::connect(ui->buttonGlobal, SIGNAL(clicked()),
+                     this, SLOT(updateTFState()));
+    QObject::connect(ui->buttonLocal, SIGNAL(clicked()),
+                     this, SLOT(updateTFState()));
 }
 
 MainWindow::~MainWindow()
@@ -53,6 +60,49 @@ MainWindow::~MainWindow()
 void MainWindow::displayVectorFieldImage(QPixmap image)
 {
     ui->labelTensorFieldDisplay->setPixmap(image);
+}
+
+void MainWindow::updateTFState()
+{
+    mTensorFieldIsGlobal = !mTensorFieldIsGlobal;
+    if (mTensorFieldIsGlobal)
+    {
+        QObject::connect(ui->buttonGenerateGridTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateGridTensorField()));
+        QObject::connect(ui->buttonGenerateMultiRotTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateMultiRotationTensorField()));
+        QObject::connect(ui->buttonGenerateRadialTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateRadialTensorField()));      
+        QObject::connect(ui->buttonGenerateHeightmapTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateHeightmapTensorField()));
+        QObject::disconnect(ui->buttonGenerateGridTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateGridTensorFieldLocal()));
+        QObject::disconnect(ui->buttonGenerateMultiRotTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateMultiRotationTensorFieldLocal()));
+        QObject::disconnect(ui->buttonGenerateRadialTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateRadialTensorFieldLocal()));
+        QObject::disconnect(ui->buttonGenerateHeightmapTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateHeightmapTensorFieldLocal()));
+    }
+    else
+    {
+        QObject::disconnect(ui->buttonGenerateGridTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateGridTensorField()));
+        QObject::disconnect(ui->buttonGenerateMultiRotTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateMultiRotationTensorField()));
+        QObject::disconnect(ui->buttonGenerateRadialTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateRadialTensorField()));
+        QObject::disconnect(ui->buttonGenerateHeightmapTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateHeightmapTensorField()));
+        QObject::connect(ui->buttonGenerateGridTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateGridTensorFieldLocal()));
+        QObject::connect(ui->buttonGenerateMultiRotTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateMultiRotationTensorFieldLocal()));
+        QObject::connect(ui->buttonGenerateRadialTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateRadialTensorFieldLocal()));
+        QObject::connect(ui->buttonGenerateHeightmapTF, SIGNAL(clicked()),
+                         mTensorField, SLOT(generateHeightmapTensorFieldLocal()));
+    }
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
